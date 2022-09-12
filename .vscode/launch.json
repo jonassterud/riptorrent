@@ -1,0 +1,42 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'riptorrent'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=riptorrent",
+                    "--package=riptorrent"
+                ],
+                "filter": {
+                    "name": "riptorrent",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'riptorrent'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=riptorrent",
+                    "--package=riptorrent"
+                ],
+                "filter": {
+                    "name": "riptorrent",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
