@@ -1,6 +1,12 @@
 [package]
 name = "riptorrent"
 version = "0.1.0"
+authors = ["Jonas Mathisrud Sterud <jonas.sterud@gmail.com>"]
 edition = "2021"
+description = "BitTorrent client written in Rust"
+repository = "https://github.com/jonassterud/riptorrent"
+license = "MIT"
 
 [dependencies]
+anyhow = { version = "1.0.64" }
+clap = { version = "3.2.20", features = ["derive"] }
