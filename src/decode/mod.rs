@@ -1,6 +1,6 @@
 pub mod parse;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use std::collections::BTreeMap;
 
 /// Represents the possible bencoded values
