@@ -3,6 +3,11 @@ use anyhow::{anyhow, Result};
 use std::collections::BTreeMap;
 
 /// Figures out what is encoded and calls the correct parse function
+/// 
+/// # Arguments
+/// 
+/// * `data` - mutable reference to data to decode
+/// * `index` - mutable reference to the (data) index
 pub fn any(data: &mut [u8], index: &mut usize) -> Result<Value> {
     match data
         .get(*index)
@@ -22,6 +27,11 @@ pub fn any(data: &mut [u8], index: &mut usize) -> Result<Value> {
 }
 
 /// Parses integers (example: i32e)
+/// 
+/// # Arguments
+/// 
+/// * `data` - mutable reference to data to decode
+/// * `index` - mutable reference to the (data) index
 pub fn integer(data: &mut [u8], index: &mut usize) -> Result<Value> {
     if *data
         .get(*index)
@@ -78,6 +88,11 @@ pub fn integer(data: &mut [u8], index: &mut usize) -> Result<Value> {
 }
 
 /// Parses byte strings (example: 5:hello)
+/// 
+/// # Arguments
+/// 
+/// * `data` - mutable reference to data to decode
+/// * `index` - mutable reference to the (data) index
 pub fn byte_string(data: &mut [u8], index: &mut usize) -> Result<Value> {
     let mut length_buf: Vec<char> = vec![];
 
@@ -118,6 +133,11 @@ pub fn byte_string(data: &mut [u8], index: &mut usize) -> Result<Value> {
 }
 
 /// Parses lists (example: li32e4:teste)
+/// 
+/// # Arguments
+/// 
+/// * `data` - mutable reference to data to decode
+/// * `index` - mutable reference to the (data) index
 pub fn list(data: &mut [u8], index: &mut usize) -> Result<Value> {
     if *data
         .get(*index)
@@ -149,6 +169,11 @@ pub fn list(data: &mut [u8], index: &mut usize) -> Result<Value> {
 }
 
 /// Parses dictionaries (example: d3:key5:valuee)
+/// 
+/// # Arguments
+/// 
+/// * `data` - mutable reference to data to decode
+/// * `index` - mutable reference to the (data) index
 pub fn dictionary(data: &mut [u8], index: &mut usize) -> Result<Value> {
     if *data
         .get(*index)
