@@ -1,26 +1,45 @@
-use crate::decode::{decode, Value};
+#![cfg(test)]
 
-#[allow(dead_code)]
-pub fn get_comparison_data() -> Vec<(&'static str, Value)> {
-    vec![
-        ("i5944e", Value::Integer(5944)),
-        ("i0e", Value::Integer(0)),
-        ("i-50e", Value::Integer(-50)),
-        ("3:abc", Value::ByteString(vec![97, 98, 99])),
-        ("0:", Value::ByteString(vec![])),
-        ("li573e3:abce", Value::List(vec![Value::Integer(573), Value::ByteString(vec![97, 98, 99])])),
-        //("d3:abci573e3:cbai375ee", Value::Dictionary(btreemap!(vec![97, 98, 99] => BVal::Number(573), vec![99, 98, 97] => BVal::Number(375)))),
-    ]
+use crate::decode::{parse, Value};
+use std::collections::BTreeMap;
+
+#[test]
+pub fn parse_integer() {
+    let left = parse::integer(&mut "i32e".as_bytes().to_vec(), &mut 0).unwrap();
+    let right = Value::Integer(32);
+
+    assert_eq!(left, right);
 }
 
 #[test]
-fn decode_bencode() {
-    for (d, e) in get_comparison_data() {
-        let left = decode(d.as_bytes().to_vec()).unwrap();
-        let right = e;
+pub fn parse_byte_string() {
+    let left = parse::byte_string(&mut "4:test".as_bytes().to_vec(), &mut 0).unwrap();
+    let right = Value::ByteString("test".as_bytes().to_vec());
 
-        if *left.first().unwrap() != right {
-            panic!("failed decoding, {:?} != {:?}", left, right);
-        }
-    }
+    assert_eq!(left, right);
+}
+
+#[test]
+pub fn parse_list() {
+    let left = parse::list(&mut "li32e4:teste".as_bytes().to_vec(), &mut 0).unwrap();
+    let right = Value::List(vec![
+        Value::Integer(32),
+        Value::ByteString("test".as_bytes().to_vec()),
+    ]);
+
+    assert_eq!(left, right);
+}
+
+#[test]
+pub fn parse_dictionary() {
+    let mut dictionary = BTreeMap::new();
+    dictionary.insert(
+        "key".as_bytes().to_vec(),
+        Value::ByteString("value".as_bytes().to_vec()),
+    );
+
+    let left = parse::dictionary(&mut "d3:key5:valuee".as_bytes().to_vec(), &mut 0).unwrap();
+    let right = Value::Dictionary(dictionary);
+
+    assert_eq!(left, right);
 }
