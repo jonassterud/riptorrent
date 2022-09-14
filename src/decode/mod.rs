@@ -13,9 +13,9 @@ pub enum Value {
 }
 
 /// Decodes bencoded data
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `data` - mutable reference to data to decode
 /// * `index` - mutable reference to the (data) index
 pub fn decode(data: &mut [u8], index: &mut usize) -> Result<Vec<Value>> {
