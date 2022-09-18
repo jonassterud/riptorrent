@@ -5,6 +5,11 @@ use anyhow::{anyhow, Result};
 use std::convert::TryFrom;
 
 impl Value {
+    /// Get value from dictionary, returns `None` if not found
+    ///
+    /// # Arguments
+    /// 
+    /// * `key` - dictionary key
     fn try_get_v(&self, key: &str) -> Result<Option<Value>> {
         if let Value::Dictionary(dict) = &self {
             let byte_string = key.as_bytes().to_vec();
@@ -16,6 +21,11 @@ impl Value {
         }
     }
 
+    /// Get value from dictionary, returns `Error` if not found
+    /// 
+    /// # Arguments
+    /// 
+    /// * `key` - dictionary key
     fn get_v(&self, key: &str) -> Result<Value> {
         if let Value::Dictionary(dict) = &self {
             let byte_string = key.as_bytes().to_vec();

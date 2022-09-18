@@ -13,11 +13,16 @@ pub enum Value {
 }
 
 impl Value {
-    /// Check if two enum are of the same variant
+    /// Checks if two `Value` enums are of the same variant
+    /// 
+    /// # Arguments
+    /// 
+    /// * `other` - `Value` enum to compare to
     pub fn variant_eq(&self, other: &Value) -> bool {
         std::mem::discriminant(self) == std::mem::discriminant(other)
     }
 
+    /// Get the inner value of Value::Integer(i64)
     pub fn get_inner_integer(&self) -> Result<i64> {
         if let Value::Integer(inner) = self {
             Ok(inner.to_owned())
@@ -26,6 +31,7 @@ impl Value {
         }
     }
 
+    /// Get the inner value of Value::ByteString(Vec<u8>)
     pub fn get_inner_byte_string(&self) -> Result<Vec<u8>> {
         if let Value::ByteString(inner) = self {
             Ok(inner.to_owned())
@@ -34,6 +40,7 @@ impl Value {
         }
     }
 
+    /// Get the inner value of Value::List(Vec<Value>)
     pub fn get_inner_list(&self) -> Result<Vec<Value>> {
         if let Value::List(inner) = self {
             Ok(inner.to_owned())
@@ -42,6 +49,7 @@ impl Value {
         }
     }
 
+    /// Get the inner value of Value::Dictionary(BTreeMap<Vec<u8>, Value>)
     pub fn get_inner_dictionary(&self) -> Result<BTreeMap<Vec<u8>, Value>> {
         if let Value::Dictionary(inner) = self {
             Ok(inner.to_owned())

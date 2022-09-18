@@ -1,5 +1,6 @@
 mod try_from;
 
+/// Torrent struct
 #[derive(Debug)]
 pub struct Torrent {
     pub info: TorrentInfo,
@@ -11,12 +12,14 @@ pub struct Torrent {
     pub encoding: Option<Vec<u8>>,
 }
 
+/// Torrent info enum
 #[derive(Debug)]
 pub enum TorrentInfo {
     SingleFile(TorrentInfoSingleFile),
     MultiFile(TorrentInfoMultiFile),
 }
 
+/// Torrent info struct for single-file mode
 #[derive(Debug)]
 pub struct TorrentInfoSingleFile {
     pub piece_length: i64,
@@ -27,6 +30,7 @@ pub struct TorrentInfoSingleFile {
     pub md5sum: Option<Vec<u8>>,
 }
 
+/// Torrent info struct for multi-file mode
 #[derive(Debug)]
 pub struct TorrentInfoMultiFile {
     pub piece_length: i64,
@@ -36,6 +40,7 @@ pub struct TorrentInfoMultiFile {
     pub files: Vec<File>,
 }
 
+/// Represents a file in a multi-file mode torrent info
 #[derive(Debug)]
 pub struct File {
     pub length: i64,
