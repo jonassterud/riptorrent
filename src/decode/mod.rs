@@ -14,9 +14,9 @@ pub enum Value {
 
 impl Value {
     /// Checks if two `Value` enums are of the same variant
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `other` - `Value` enum to compare to
     pub fn variant_eq(&self, other: &Value) -> bool {
         std::mem::discriminant(self) == std::mem::discriminant(other)

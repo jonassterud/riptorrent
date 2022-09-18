@@ -8,33 +8,27 @@ impl Value {
     /// Get value from dictionary, returns `None` if not found
     ///
     /// # Arguments
-    /// 
+    ///
     /// * `key` - dictionary key
     fn try_get_v(&self, key: &str) -> Result<Option<Value>> {
-        if let Value::Dictionary(dict) = &self {
-            let byte_string = key.as_bytes().to_vec();
-            let dict_value = dict.get(&byte_string).cloned();
+        let byte_string = key.as_bytes().to_vec();
+        let dict = self.get_inner_dictionary()?;
+        let dict_value = dict.get(&byte_string).cloned();
 
-            Ok(dict_value)
-        } else {
-            Err(anyhow!("Value is not a dictionary"))
-        }
+        Ok(dict_value)
     }
 
     /// Get value from dictionary, returns `Error` if not found
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `key` - dictionary key
     fn get_v(&self, key: &str) -> Result<Value> {
-        if let Value::Dictionary(dict) = &self {
-            let byte_string = key.as_bytes().to_vec();
-            let dict_value = dict.get(&byte_string).cloned();
+        let byte_string = key.as_bytes().to_vec();
+        let dict = self.get_inner_dictionary()?;
+        let dict_value = dict.get(&byte_string).cloned();
 
-            Ok(dict_value.ok_or_else(|| anyhow!(format!("Missing \"{}\" key", key)))?)
-        } else {
-            Err(anyhow!("Value is not a dictionary"))
-        }
+        dict_value.ok_or_else(|| anyhow!(format!("Missing \"{}\" key", key)))
     }
 }
 
