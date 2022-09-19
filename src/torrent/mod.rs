@@ -1,3 +1,5 @@
+use crate::bcode;
+
 mod try_from;
 
 /// Torrent struct
@@ -10,6 +12,8 @@ pub struct Torrent {
     pub comment: Option<Vec<u8>>,
     pub created_by: Option<Vec<u8>>,
     pub encoding: Option<Vec<u8>>,
+
+    pub info_dict: bcode::Value,
 }
 
 /// Torrent info enum

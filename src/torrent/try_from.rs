@@ -1,16 +1,16 @@
 use super::{File, Torrent, TorrentInfo, TorrentInfoMultiFile, TorrentInfoSingleFile};
-use crate::Value;
+use crate::bcode;
 
 use anyhow::{anyhow, Result};
 use std::convert::TryFrom;
 
-impl Value {
+impl bcode::Value {
     /// Get value from dictionary, returns `None` if not found
     ///
     /// # Arguments
     ///
     /// * `key` - dictionary key
-    fn try_get_v(&self, key: &str) -> Result<Option<Value>> {
+    fn try_get_v(&self, key: &str) -> Result<Option<bcode::Value>> {
         let byte_string = key.as_bytes().to_vec();
         let dict = self.get_inner_dictionary()?;
         let dict_value = dict.get(&byte_string).cloned();
@@ -23,7 +23,7 @@ impl Value {
     /// # Arguments
     ///
     /// * `key` - dictionary key
-    fn get_v(&self, key: &str) -> Result<Value> {
+    fn get_v(&self, key: &str) -> Result<bcode::Value> {
         let byte_string = key.as_bytes().to_vec();
         let dict = self.get_inner_dictionary()?;
         let dict_value = dict.get(&byte_string).cloned();
@@ -32,11 +32,15 @@ impl Value {
     }
 }
 
-impl TryFrom<&Value> for Torrent {
+impl TryFrom<&mut Vec<u8>> for Torrent {
     type Error = anyhow::Error;
 
     // TODO: Rewrite this..
-    fn try_from(value: &Value) -> Result<Self> {
+    fn try_from(data: &mut Vec<u8>) -> Result<Self> {
+        let data_copy = data.clone();
+        let value = bcode::decode(data, &mut 0)?;
+        let value = value.get(0).ok_or_else(|| anyhow!("Failed decoding"))?;
+
         let announce = value.get_v("announce")?;
         let announce_list = value.try_get_v("announce-list")?;
         let creation_date = value.try_get_v("creation date")?;
@@ -70,14 +74,16 @@ impl TryFrom<&Value> for Torrent {
             comment: comment.map(|e| e.get_inner_byte_string()).transpose()?,
             created_by: created_by.map(|e| e.get_inner_byte_string()).transpose()?,
             encoding: encoding.map(|e| e.get_inner_byte_string()).transpose()?,
+
+            info_dict,
         })
     }
 }
 
-impl TryFrom<&Value> for TorrentInfo {
+impl TryFrom<&bcode::Value> for TorrentInfo {
     type Error = anyhow::Error;
 
-    fn try_from(value: &Value) -> Result<Self> {
+    fn try_from(value: &bcode::Value) -> Result<Self> {
         let piece_length = value.get_v("piece length")?;
         let pieces = value.get_v("pieces")?;
         let private = value.try_get_v("private")?;
@@ -113,10 +119,10 @@ impl TryFrom<&Value> for TorrentInfo {
     }
 }
 
-impl TryFrom<&Value> for File {
+impl TryFrom<&bcode::Value> for File {
     type Error = anyhow::Error;
 
-    fn try_from(value: &Value) -> Result<Self> {
+    fn try_from(value: &bcode::Value) -> Result<Self> {
         let length = value.get_v("length")?;
         let md5sum = value.try_get_v("md5sum")?;
         let path = value.get_v("path")?;

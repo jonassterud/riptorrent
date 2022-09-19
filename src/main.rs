@@ -1,25 +1,25 @@
 mod cli;
-mod decode;
+mod client;
+mod bcode;
 mod tests;
 mod torrent;
 
-use std::convert::TryFrom;
-
 use cli::Cli;
-use decode::{decode, Value};
+use client::Client;
 use torrent::Torrent;
 
 use anyhow::{anyhow, Result};
 use clap::Parser;
+use std::convert::TryFrom;
 
 fn main() -> Result<()> {
     let args = Cli::parse();
 
     if let Ok(mut bytes) = std::fs::read(args.path) {
-        let decoded = decode(&mut bytes, &mut 0).unwrap();
-        let torrent = Torrent::try_from(decoded.get(0).unwrap())?;
+        let torrent = Torrent::try_from(&mut bytes)?;
+        let client = Client::new(torrent)?;
 
-        println!("{:?}", torrent);
+        println!("{:?}", client);
     } else {
         return Err(anyhow!("Failed reading torrent file"));
     }
