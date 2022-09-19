@@ -1,6 +1,6 @@
+mod bcode;
 mod cli;
 mod client;
-mod bcode;
 mod tests;
 mod torrent;
 

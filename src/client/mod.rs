@@ -1,5 +1,5 @@
-use crate::Torrent;
 use crate::bcode;
+use crate::Torrent;
 
 use anyhow::{anyhow, Result};
 use sha1::{Digest, Sha1};

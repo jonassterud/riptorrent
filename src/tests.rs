@@ -38,7 +38,8 @@ pub fn bdecode_dictionary() {
         bcode::Value::ByteString("value".as_bytes().to_vec()),
     );
 
-    let left = bdecode::parse::dictionary(&mut "d3:key5:valuee".as_bytes().to_vec(), &mut 0).unwrap();
+    let left =
+        bdecode::parse::dictionary(&mut "d3:key5:valuee".as_bytes().to_vec(), &mut 0).unwrap();
     let right = bcode::Value::Dictionary(dictionary);
 
     assert_eq!(left, right);
