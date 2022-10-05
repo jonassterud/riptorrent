@@ -1,12 +1,20 @@
-use super::value::Value;
+pub mod parse;
+
+use super::Value;
 
 use anyhow::Result;
 
-/// Decodes bencoded data
+/// Encodes data to bencode
 ///
 /// # Arguments
 ///
 /// * `data` - data to encode
 pub fn encode(data: Vec<&Value>) -> Result<Vec<u8>> {
-    todo!()
+    let mut out = vec![];
+
+    for value in data {
+        out.append(&mut parse::any(value)?);
+    }
+
+    Ok(out)
 }
