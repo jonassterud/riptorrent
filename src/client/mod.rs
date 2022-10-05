@@ -2,7 +2,6 @@ use crate::bcode;
 use crate::Torrent;
 
 use anyhow::{anyhow, Result};
-use sha1::{Digest, Sha1};
 
 /// Client struct
 #[derive(Debug)]
@@ -48,12 +47,8 @@ impl TrackerRequestParameters {
     ///
     /// * `torrent` - a reference to a `Torrent` struct
     pub fn from_torrent(torrent: &Torrent) -> Result<TrackerRequestParameters> {
-        let info_dict = bcode::encode(vec![&torrent.info_dict])?;
-        let mut hasher = Sha1::new();
-        hasher.update(info_dict);
-
         Ok(TrackerRequestParameters {
-            info_hash: hasher.finalize().to_vec(),
+            info_hash: torrent.info_hash.clone(),
             peer_id: todo!(),
             port: todo!(),
             uploaded: todo!(),

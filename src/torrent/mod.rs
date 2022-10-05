@@ -13,7 +13,7 @@ pub struct Torrent {
     pub created_by: Option<Vec<u8>>,
     pub encoding: Option<Vec<u8>>,
 
-    pub info_dict: bcode::Value,
+    pub info_hash: Vec<u8>,
 }
 
 /// Torrent info enum

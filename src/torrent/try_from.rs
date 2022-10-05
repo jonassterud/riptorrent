@@ -2,6 +2,7 @@ use super::{File, Torrent, TorrentInfo, TorrentInfoMultiFile, TorrentInfoSingleF
 use crate::bcode;
 
 use anyhow::{anyhow, Result};
+use sha1_smol::Sha1;
 use std::convert::TryFrom;
 
 impl bcode::Value {
@@ -37,7 +38,6 @@ impl TryFrom<&mut Vec<u8>> for Torrent {
 
     // TODO: Rewrite this..
     fn try_from(data: &mut Vec<u8>) -> Result<Self> {
-        let data_copy = data.clone();
         let value = bcode::decode(data, &mut 0)?;
         let value = value.get(0).ok_or_else(|| anyhow!("Failed decoding"))?;
 
@@ -75,7 +75,10 @@ impl TryFrom<&mut Vec<u8>> for Torrent {
             created_by: created_by.map(|e| e.get_inner_byte_string()).transpose()?,
             encoding: encoding.map(|e| e.get_inner_byte_string()).transpose()?,
 
-            info_dict,
+            info_hash: Sha1::from(bcode::encode(vec![&info_dict])?)
+                .digest()
+                .bytes()
+                .to_vec(),
         })
     }
 }
