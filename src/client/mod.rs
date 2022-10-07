@@ -1,11 +1,22 @@
+mod message;
+mod request;
+mod response;
+
 use crate::bcode;
 use crate::Torrent;
+
+use request::*;
+use response::*;
 
 use anyhow::{anyhow, Result};
 
 /// Client struct
 #[derive(Debug)]
 pub struct Client {
+    pub am_choking: bool,
+    pub am_interested: bool,
+    pub peer_choking: bool,
+    pub peer_interested: bool,
     pub request_parameters: TrackerRequestParameters,
     pub last_response: Option<TrackerResponse>,
     pub torrent: Torrent,
@@ -15,80 +26,26 @@ impl Client {
     /// Construct a new `Client`
     pub fn new(torrent: Torrent) -> Result<Client> {
         Ok(Client {
+            am_choking: true,
+            am_interested: false,
+            peer_choking: true,
+            peer_interested: false,
             request_parameters: TrackerRequestParameters::from_torrent(&torrent)?,
             last_response: None,
             torrent,
         })
     }
-}
 
-/// Tracker request parameters
-#[derive(Debug)]
-pub struct TrackerRequestParameters {
-    pub info_hash: Vec<u8>,
-    pub peer_id: String,
-    pub port: String,
-    pub uploaded: String,
-    pub downloaded: String,
-    pub left: String,
-    pub compact: String,
-    pub no_peer_id: String,
-    pub event: String,
-    pub ip: String,
-    pub numwant: String,
-    pub key: String,
-    pub trackerid: String,
-}
+    /// Get handshake message
+    pub fn get_handshake(mut info_hash: Vec<u8>, mut peer_id: Vec<u8>) -> Result<Vec<u8>> {
+        let mut out = vec![];
 
-impl TrackerRequestParameters {
-    /// Construct a new `TrackerRequestParameters` from a torrent
-    ///
-    /// # Arguments
-    ///
-    /// * `torrent` - a reference to a `Torrent` struct
-    pub fn from_torrent(torrent: &Torrent) -> Result<TrackerRequestParameters> {
-        Ok(TrackerRequestParameters {
-            info_hash: torrent.info_hash.clone(),
-            peer_id: todo!(),
-            port: todo!(),
-            uploaded: todo!(),
-            downloaded: todo!(),
-            left: todo!(),
-            compact: todo!(),
-            no_peer_id: todo!(),
-            event: todo!(),
-            ip: todo!(),
-            numwant: todo!(),
-            key: todo!(),
-            trackerid: todo!(),
-        })
+        out.push(19);
+        out.append(&mut "BitTorrent protocol".as_bytes().to_vec());
+        out.append(&mut vec![0; 8]);
+        out.append(&mut info_hash);
+        out.append(&mut peer_id);
+
+        Ok(out)
     }
-}
-
-/// Tracker response
-#[derive(Debug)]
-pub struct TrackerResponse {
-    pub failure_reason: Option<String>,
-    pub warning_message: Option<String>,
-    pub interval: Option<u32>,
-    pub min_interval: Option<u32>,
-    pub tracker_id: Option<String>,
-    pub complete: Option<u64>,
-    pub incomplete: Option<u64>,
-    pub peers: Option<Peers>,
-}
-
-/// Enum to represent peers
-#[derive(Debug)]
-pub enum Peers {
-    Dictionary(PeersDictionaryModel),
-    Binary(String),
-}
-
-/// Struct to represent a peer in dictionary model
-#[derive(Debug)]
-pub struct PeersDictionaryModel {
-    pub peer_id: Option<String>,
-    pub ip: Option<String>,
-    pub port: Option<u16>,
 }
