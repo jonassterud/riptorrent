@@ -14,3 +14,4 @@ sha1_smol = { version = "1.0.0" }
 arrayref = { version = "0.3.6" }
 rand = { version = "0.8.5" }
 urlencoding = { version = "2.1.2" }
+reqwest = { version = "0.11.12", features = ["blocking"] }
