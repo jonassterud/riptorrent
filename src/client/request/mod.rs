@@ -28,12 +28,14 @@ impl TrackerRequestParameters {
     /// * `torrent` - a reference to a `Torrent` struct
     // TODO: Replace placeholder data
     pub fn from_torrent(torrent: &Torrent) -> Result<TrackerRequestParameters> {
-        //let mut peer_id: [u8; 20] = [0; 20];
-        //thread_rng().fill_bytes(&mut peer_id);
+        let peer_id: String = ['_'; 20]
+            .map(|_| (thread_rng().gen_range(32..=126) as u8) as char)
+            .iter()
+            .collect();
 
         Ok(TrackerRequestParameters {
             info_hash: torrent.info_hash.clone(),
-            peer_id: "kio09kjiujkiuhygtfrd".to_string(),
+            peer_id,
             port: "6881".to_string(),
             uploaded: "0".to_string(),
             downloaded: "0".to_string(),
