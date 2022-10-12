@@ -22,7 +22,9 @@ fn main() -> Result<()> {
         let torrent = Torrent::try_from(&mut bytes)?;
         let client = Client::new(torrent)?;
 
-        println!("{:?}", client);
+        client.send_tracker_request()?;
+
+        //println!("{:?}", client);
     } else {
         return Err(anyhow!("Failed reading torrent file"));
     }

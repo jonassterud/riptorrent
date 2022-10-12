@@ -51,3 +51,13 @@ pub struct File {
     pub md5sum: Option<Vec<u8>>,
     pub path: Vec<Vec<u8>>,
 }
+
+impl Torrent {
+    /// Get total number of bytes that this torrent download contains
+    pub fn get_left(&self) -> i64 {
+        match &self.info {
+            TorrentInfo::SingleFile(info) => info.length,
+            TorrentInfo::MultiFile(info) => info.files.iter().map(|x| x.length).sum(),
+        }
+    }
+}

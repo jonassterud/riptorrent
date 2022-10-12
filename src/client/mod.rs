@@ -1,5 +1,6 @@
 pub mod message;
 
+mod protocol;
 mod request;
 mod response;
 

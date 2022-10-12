@@ -1,5 +1,7 @@
 use super::*;
 
+use rand::prelude::*;
+
 /// Tracker request parameters
 #[derive(Debug)]
 pub struct TrackerRequestParameters {
@@ -12,10 +14,10 @@ pub struct TrackerRequestParameters {
     pub compact: String,
     pub no_peer_id: String,
     pub event: String,
-    pub ip: String,
-    pub numwant: String,
-    pub key: String,
-    pub trackerid: String,
+    pub ip: Option<String>,
+    pub numwant: Option<String>,
+    pub key: Option<String>,
+    pub trackerid: Option<String>,
 }
 
 impl TrackerRequestParameters {
@@ -24,21 +26,40 @@ impl TrackerRequestParameters {
     /// # Arguments
     ///
     /// * `torrent` - a reference to a `Torrent` struct
+    // TODO: Replace placeholder data
     pub fn from_torrent(torrent: &Torrent) -> Result<TrackerRequestParameters> {
+        let mut peer_id: [u8; 20] = [0; 20];
+        thread_rng().fill_bytes(&mut peer_id);
+
         Ok(TrackerRequestParameters {
             info_hash: torrent.info_hash.clone(),
-            peer_id: todo!(),
-            port: todo!(),
-            uploaded: todo!(),
-            downloaded: todo!(),
-            left: todo!(),
-            compact: todo!(),
-            no_peer_id: todo!(),
-            event: todo!(),
-            ip: todo!(),
-            numwant: todo!(),
-            key: todo!(),
-            trackerid: todo!(),
+            peer_id: peer_id.iter().map(|x| *x as char).collect::<String>(),
+            port: "6881".to_string(),
+            uploaded: "0".to_string(),
+            downloaded: "0".to_string(),
+            left: torrent.get_left().to_string(),
+            compact: "0".to_string(),
+            no_peer_id: "0".to_string(),
+            event: "started".to_string(),
+            ip: None,
+            numwant: None,
+            key: None,
+            trackerid: None,
         })
+    }
+
+    /// Returns the parameters as a string to add it to a URL
+    pub fn as_url_params(&self) -> String {
+        format!("info_hash={}&peer_id={}&port={}&uploaded={}&downloaded={}&left={}&compact={}&no_peer_id={}&event={}",
+            urlencoding::encode_binary(&self.info_hash),
+            urlencoding::encode(&self.peer_id),
+            urlencoding::encode(&self.port),
+            urlencoding::encode(&self.uploaded),
+            urlencoding::encode(&self.downloaded),
+            urlencoding::encode(&self.left),
+            urlencoding::encode(&self.compact),
+            urlencoding::encode(&self.no_peer_id),
+            urlencoding::encode(&self.event),
+        )
     }
 }
