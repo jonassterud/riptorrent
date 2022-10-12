@@ -1,5 +1,7 @@
+use anyhow::{anyhow, Result};
+
 /// Message used to communicate with peers
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Message {
     pub length: u32,
     pub message_id: Option<u8>,
@@ -7,6 +9,64 @@ pub struct Message {
 }
 
 impl Message {
+    /// Parse bytes into a message
+    /// TODO: Return a Result instead of panicking
+    pub fn from_bytes(data: Vec<u8>) -> Message {
+        let length: u32 = u32::from_be_bytes(*array_ref![data, 0, 4]);
+
+        if length == 0 {
+            return Message::new_keep_alive();
+        }
+
+        let message_id: u8 = u8::from_be_bytes(*array_ref![data, 4, 1]);
+        let payload = data
+            .get(5..5 + (length as usize - 1))
+            .expect("missing payload!");
+
+        match message_id {
+            0 => Message::new_choke(),
+            1 => Message::new_unchoke(),
+            2 => Message::new_interested(),
+            3 => Message::new_not_interested(),
+            4 => Message::new_have(u32::from_be_bytes(*array_ref![payload, 0, 4])),
+            5 => Message::new_bitfield(payload.to_vec()),
+            6 => Message::new_request(
+                u32::from_be_bytes(*array_ref![payload, 0, 4]),
+                u32::from_be_bytes(*array_ref![payload, 4, 4]),
+                u32::from_be_bytes(*array_ref![payload, 8, 4]),
+            ),
+            7 => Message::new_piece(
+                u32::from_be_bytes(*array_ref![payload, 0, 4]),
+                u32::from_be_bytes(*array_ref![payload, 4, 4]),
+                payload[8..].to_vec(),
+            ),
+            8 => Message::new_cancel(
+                u32::from_be_bytes(*array_ref![payload, 0, 4]),
+                u32::from_be_bytes(*array_ref![payload, 4, 4]),
+                u32::from_be_bytes(*array_ref![payload, 8, 4]),
+            ),
+            9 => Message::new_port(u16::from_be_bytes(*array_ref![payload, 0, 2])),
+            _ => panic!("Unexpected message id"),
+        }
+    }
+
+    /// Get byte representation of a message
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut out = vec![];
+
+        out.append(&mut self.length.to_be_bytes().to_vec());
+
+        if self.message_id.is_some() {
+            out.append(&mut self.message_id.unwrap().to_be_bytes().to_vec());
+        }
+
+        if self.payload.is_some() {
+            out.append(&mut self.payload.to_owned().unwrap());
+        }
+
+        out
+    }
+
     /// Construct a "keep-alive" message
     pub fn new_keep_alive() -> Message {
         Message {

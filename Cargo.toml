@@ -11,3 +11,4 @@ license = "MIT"
 anyhow = { version = "1.0.64" }
 clap = { version = "3.2.20", features = ["derive"] }
 sha1_smol = { version = "1.0.0" }
+arrayref = { version = "0.3.6" }

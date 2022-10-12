@@ -1,4 +1,5 @@
-mod message;
+pub mod message;
+
 mod request;
 mod response;
 

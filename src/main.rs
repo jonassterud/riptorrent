@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate arrayref;
+
 mod bcode;
 mod cli;
 mod client;

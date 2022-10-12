@@ -1,6 +1,7 @@
 #![cfg(test)]
 
 use crate::bcode::{self, bdecode, bencode};
+use crate::client::message::Message;
 use std::collections::BTreeMap;
 
 #[test]
@@ -83,6 +84,16 @@ pub fn bencode_dictionary() {
 
     let left = bencode::parse::dictionary(&dictionary).unwrap();
     let right = "d3:key5:valuee".as_bytes().to_vec();
+
+    assert_eq!(left, right);
+}
+
+#[test]
+pub fn message_to_and_from_bytes() {
+    let left = Message::new_bitfield(vec![0, 0, 1, 0, 0, 0, 0, 0]);
+    let bytes = left.to_bytes();
+
+    let right = Message::from_bytes(bytes);
 
     assert_eq!(left, right);
 }
