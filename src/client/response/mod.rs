@@ -1,6 +1,7 @@
 use super::*;
 use anyhow::{anyhow, Result};
 use bcode::Value;
+use peer::Peer;
 
 /// Tracker response
 #[derive(Debug)]
@@ -11,14 +12,6 @@ pub struct TrackerResponse {
     pub complete: Option<i64>,
     pub incomplete: Option<i64>,
     pub peers: Option<Vec<Peer>>,
-}
-
-/// Struct to represent a peer
-#[derive(Debug)]
-pub struct Peer {
-    pub peer_id: Option<Vec<u8>>,
-    pub ip: Option<Vec<u8>>,
-    pub port: Option<u16>,
 }
 
 impl TrackerResponse {
@@ -70,23 +63,34 @@ impl TrackerResponse {
                         .map(|e| e.get_inner_byte_string().unwrap());
                     let ip = peer_d
                         .get(&b"ip".to_vec())
-                        .map(|e| e.get_inner_byte_string().unwrap());
+                        .map(|e| {
+                            let temp = e.get_inner_byte_string().unwrap();
+                            *array_ref![temp, 0, 4]
+                        })
+                        .unwrap();
                     let port = peer_d
                         .get(&b"port".to_vec())
-                        .map(|e| e.get_inner_integer().unwrap() as u16);
+                        .map(|e| e.get_inner_integer().unwrap() as u16)
+                        .unwrap();
 
-                    peers.push(Peer { peer_id, ip, port });
+                    peers.push(Peer {
+                        peer_id,
+                        ip,
+                        port,
+                        stream: None,
+                    });
                 }
             }
             Some(Value::ByteString(peers_bm)) => {
                 for chunk in peers_bm.chunks(6) {
-                    let ip = Some(array_ref![chunk, 0, 4].to_vec());
-                    let port = Some(u16::from_be_bytes(*array_ref![chunk, 4, 2]));
+                    let ip = Some(*array_ref![chunk, 0, 4]).unwrap();
+                    let port = Some(u16::from_be_bytes(*array_ref![chunk, 4, 2])).unwrap();
 
                     peers.push(Peer {
                         peer_id: None,
                         ip,
                         port,
+                        stream: None,
                     });
                 }
             }

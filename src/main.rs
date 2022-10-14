@@ -20,11 +20,11 @@ fn main() -> Result<()> {
 
     if let Ok(mut bytes) = std::fs::read(args.path) {
         let torrent = Torrent::try_from(&mut bytes)?;
-        let client = Client::new(torrent)?;
+        let mut client = Client::new(torrent)?;
 
         client.send_tracker_request()?;
 
-        //println!("{:?}", client);
+        println!("{:?}", client.last_response);
     } else {
         return Err(anyhow!("Failed reading torrent file"));
     }

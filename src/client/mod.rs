@@ -1,5 +1,6 @@
 pub mod message;
 
+mod peer;
 mod protocol;
 mod request;
 mod response;
