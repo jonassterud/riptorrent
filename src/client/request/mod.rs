@@ -12,12 +12,7 @@ pub struct TrackerRequestParameters {
     pub downloaded: String,
     pub left: String,
     pub compact: String,
-    pub no_peer_id: String,
     pub event: String,
-    pub ip: Option<String>,
-    pub numwant: Option<String>,
-    pub key: Option<String>,
-    pub trackerid: Option<String>,
 }
 
 impl TrackerRequestParameters {
@@ -40,19 +35,15 @@ impl TrackerRequestParameters {
             uploaded: "0".to_string(),
             downloaded: "0".to_string(),
             left: torrent.get_left().to_string(),
-            compact: "0".to_string(),
-            no_peer_id: "0".to_string(),
+            compact: "1".to_string(),
             event: "started".to_string(),
-            ip: None,
-            numwant: None,
-            key: None,
-            trackerid: None,
         })
     }
 
     /// Returns the parameters as a string to add it to a URL
     pub fn as_url_params(&self) -> String {
-        format!("info_hash={}&peer_id={}&port={}&uploaded={}&downloaded={}&left={}&compact={}&no_peer_id={}&event={}",
+        format!(
+            "info_hash={}&peer_id={}&port={}&uploaded={}&downloaded={}&left={}&compact={}&event={}",
             urlencoding::encode_binary(&self.info_hash),
             urlencoding::encode(&self.peer_id),
             urlencoding::encode(&self.port),
@@ -60,7 +51,6 @@ impl TrackerRequestParameters {
             urlencoding::encode(&self.downloaded),
             urlencoding::encode(&self.left),
             urlencoding::encode(&self.compact),
-            urlencoding::encode(&self.no_peer_id),
             urlencoding::encode(&self.event),
         )
     }

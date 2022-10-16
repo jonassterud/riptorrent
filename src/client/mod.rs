@@ -1,7 +1,6 @@
 pub mod message;
 
 mod peer;
-mod protocol;
 mod request;
 mod response;
 
@@ -16,11 +15,6 @@ use anyhow::{anyhow, Result};
 /// Client struct
 #[derive(Debug)]
 pub struct Client {
-    pub am_choking: bool,
-    pub am_interested: bool,
-    pub peer_choking: bool,
-    pub peer_interested: bool,
-    pub request_parameters: TrackerRequestParameters,
     pub last_response: Option<TrackerResponse>,
     pub torrent: Torrent,
 }
@@ -29,11 +23,6 @@ impl Client {
     /// Construct a new `Client`
     pub fn new(torrent: Torrent) -> Result<Client> {
         Ok(Client {
-            am_choking: true,
-            am_interested: false,
-            peer_choking: true,
-            peer_interested: false,
-            request_parameters: TrackerRequestParameters::from_torrent(&torrent)?,
             last_response: None,
             torrent,
         })
@@ -50,5 +39,19 @@ impl Client {
         out.append(&mut peer_id);
 
         Ok(out)
+    }
+
+    /// Send request to tracker
+    pub fn send_tracker_request(&mut self) -> Result<()> {
+        let params = TrackerRequestParameters::from_torrent(&self.torrent)?;
+        let announce = String::from_utf8(self.torrent.announce.clone())?;
+        let final_url = format!("{}?{}", announce, params.as_url_params());
+
+        let response = reqwest::blocking::get(final_url)?.bytes()?.to_vec();
+        let tracker_response = TrackerResponse::from_bytes(response)?;
+
+        self.last_response = Some(tracker_response);
+
+        Ok(())
     }
 }

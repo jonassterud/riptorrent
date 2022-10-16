@@ -73,12 +73,7 @@ impl TrackerResponse {
                         .map(|e| e.get_inner_integer().unwrap() as u16)
                         .unwrap();
 
-                    peers.push(Peer {
-                        peer_id,
-                        ip,
-                        port,
-                        stream: None,
-                    });
+                    peers.push(Peer::new(peer_id, ip, port));
                 }
             }
             Some(Value::ByteString(peers_bm)) => {
@@ -86,12 +81,7 @@ impl TrackerResponse {
                     let ip = Some(*array_ref![chunk, 0, 4]).unwrap();
                     let port = Some(u16::from_be_bytes(*array_ref![chunk, 4, 2])).unwrap();
 
-                    peers.push(Peer {
-                        peer_id: None,
-                        ip,
-                        port,
-                        stream: None,
-                    });
+                    peers.push(Peer::new(None, ip, port));
                 }
             }
             _ => return Err(anyhow!("Couldn't decode peers")),
