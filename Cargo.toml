@@ -1,3 +1,6 @@
+[workspace]
+members = ["crates/*"]
+
 [package]
 name = "riptorrent"
 version = "0.1.0"
@@ -8,11 +11,8 @@ repository = "https://github.com/jonassterud/riptorrent"
 license = "MIT"
 
 [dependencies]
-async-std = { version = "1.12.0", features = ["attributes"]}
-anyhow = { version = "1.0.64" }
-clap = { version = "3.2.20", features = ["derive"] }
-sha1_smol = { version = "1.0.0" }
-arrayref = { version = "0.3.6" }
-rand = { version = "0.8.5" }
-urlencoding = { version = "2.1.2" }
-reqwest = { version = "0.11.12", features = ["blocking"] }
+bcode = { version = "0.1.*", path = "crates/bcode" }
+torrent = { version = "0.1.*", path = "crates/torrent" }
+
+anyhow = { version = "1.0.65" }
+futures = { version = "0.3.24" }

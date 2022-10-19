@@ -1,4 +1,4 @@
-![thales](logo/cover.png)
+![thales](media/logo/cover.png)
 
 ## About
 *riptorrent* is a WIP minimal BitTorrent client written in Rust.

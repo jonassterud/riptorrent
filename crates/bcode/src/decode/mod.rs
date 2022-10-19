@@ -1,46 +1,55 @@
-use super::Value;
-use anyhow::{anyhow, Result};
+use crate::*;
 use std::collections::BTreeMap;
+use anyhow::{anyhow, Result};
 
-/// Helper function to get byte at index
+/// Decode data as bcode to a `bcode::Value`.
 ///
 /// # Arguments
 ///
-/// * `data` - reference to data
-/// * `at` - index to get byte from
-fn get(data: &[u8], at: &usize) -> Result<u8> {
-    Ok(*data.get(*at).ok_or_else(|| anyhow!("Index out of range"))?)
-}
-
-/// Figures out what is encoded and calls the correct parse function
-///
-/// # Arguments
-///
-/// * `data` - mutable reference to data to decode
-/// * `index` - mutable reference to the (data) index
-pub fn any(data: &mut [u8], index: &mut usize) -> Result<Value> {
-    match get(data, index)? {
+/// * `data` - bytes to decode.
+/// * `index` - index of where to start decoding, usually `0`.
+pub fn decode(data: &[u8], index: &mut usize) -> Result<Value> {
+    match get(data, *index)? {
         // Integer
-        105 => integer(data, index),
+        b'i' => decode_integer(data, index),
         // Byte string
-        48..=57 => byte_string(data, index),
+        48..=57 => decode_byte_string(data, index),
         // List
-        108 => list(data, index),
+        b'l' => decode_list(data, index),
         // Dictionary
-        100 => dictionary(data, index),
+        b'd' => decode_dictionary(data, index),
         // Other
         _ => Err(anyhow!("Unexpected byte")),
     }
 }
 
-/// Parses integers (example: i32e)
+/// Helper function to get byte at index
 ///
 /// # Arguments
 ///
-/// * `data` - mutable reference to data to decode
-/// * `index` - mutable reference to the (data) index
-pub fn integer(data: &mut [u8], index: &mut usize) -> Result<Value> {
-    if get(data, index)? as char == 'i' {
+/// * `data` - reference to data.
+/// * `at` - index to get byte from.
+fn get(data: &[u8], at: usize) -> Result<u8> {
+    if at > data.len() - 1 {
+        Err(anyhow!(
+            "Index out of range (index: {}, data length: {})",
+            at,
+            data.len()
+        ))
+    } else {
+        Ok(*data.get(at).unwrap())
+    }
+}
+
+
+/// Decode a bencoded integer.
+///
+/// # Arguments
+///
+/// * `data` - bytes to decode.
+/// * `index` - index of where to start decoding.
+fn decode_integer(data: &[u8], index: &mut usize) -> Result<Value> {
+    if get(data, *index)? as char == 'i' {
         *index += 1;
     } else {
         return Err(anyhow!("Integers must start with 'i'"));
@@ -49,20 +58,20 @@ pub fn integer(data: &mut [u8], index: &mut usize) -> Result<Value> {
     let mut number_buf: Vec<char> = vec![];
 
     loop {
-        match get(data, index)? {
+        match get(data, *index)? {
             // Minus sign
-            45 => {
+            b'-' => {
                 if !number_buf.is_empty() {
-                    return Err(anyhow!("Unexpected byte while parsing integer"));
+                    return Err(anyhow!("Unexpected minus sign"));
                 }
 
-                number_buf.push(get(data, index)? as char);
+                number_buf.push(get(data, *index)? as char);
             }
             // Digits
             48..=57 => {
-                number_buf.push(get(data, index)? as char);
+                number_buf.push(get(data, *index)? as char);
 
-                if number_buf.first() == Some(&'-') && get(data, index)? == 48 {
+                if number_buf.first() == Some(&'-') && get(data, *index)? as char == '0' {
                     return Err(anyhow!("\"-0\" is not allowed"));
                 }
 
@@ -71,7 +80,7 @@ pub fn integer(data: &mut [u8], index: &mut usize) -> Result<Value> {
                 }
             }
             // End character 'e'
-            101 => {
+            b'e' => {
                 *index += 1;
 
                 return Ok(Value::Integer(
@@ -79,7 +88,7 @@ pub fn integer(data: &mut [u8], index: &mut usize) -> Result<Value> {
                 ));
             }
             // Other
-            _ => return Err(anyhow!("Unexpected byte while parsing integer")),
+            _ => return Err(anyhow!("Unexpected byte while decoding integer")),
         }
 
         // Increase index
@@ -87,33 +96,33 @@ pub fn integer(data: &mut [u8], index: &mut usize) -> Result<Value> {
     }
 }
 
-/// Parses byte strings (example: 5:hello)
+/// Decode a bencoded byte string.
 ///
 /// # Arguments
 ///
-/// * `data` - mutable reference to data to decode
-/// * `index` - mutable reference to the (data) index
-pub fn byte_string(data: &mut [u8], index: &mut usize) -> Result<Value> {
+/// * `data` - bytes to decode.
+/// * `index` - index of where to start decoding.
+fn decode_byte_string(data: &[u8], index: &mut usize) -> Result<Value> {
     let mut length_buf: Vec<char> = vec![];
 
     loop {
-        match get(data, index)? {
+        match get(data, *index)? {
             // Digits
             48..=57 => {
-                length_buf.push(get(data, index)? as char);
+                length_buf.push(get(data, *index)? as char);
 
                 if length_buf.first() == Some(&'0') && length_buf.len() > 1 {
                     return Err(anyhow!("Leading zeros are not allowed"));
                 }
             }
             // Seperator ':'
-            58 => {
-                let length: usize = length_buf.iter().collect::<String>().parse()?;
+            b':' => {
+                let length = length_buf.iter().collect::<String>().parse::<usize>()?;
                 let mut byte_string: Vec<u8> = vec![];
 
                 for _ in 0..length {
                     *index += 1;
-                    byte_string.push(get(data, index)?);
+                    byte_string.push(get(data, *index)?);
                 }
 
                 *index += 1;
@@ -121,7 +130,7 @@ pub fn byte_string(data: &mut [u8], index: &mut usize) -> Result<Value> {
                 return Ok(Value::ByteString(byte_string));
             }
             // Other
-            _ => return Err(anyhow!("Unexpected byte while parsing byte string")),
+            _ => return Err(anyhow!("Unexpected byte while decoding byte string")),
         }
 
         // Increase index
@@ -129,14 +138,14 @@ pub fn byte_string(data: &mut [u8], index: &mut usize) -> Result<Value> {
     }
 }
 
-/// Parses lists (example: li32e4:teste)
+/// Decode a bencoded list.
 ///
 /// # Arguments
 ///
-/// * `data` - mutable reference to data to decode
-/// * `index` - mutable reference to the (data) index
-pub fn list(data: &mut [u8], index: &mut usize) -> Result<Value> {
-    if get(data, index)? as char == 'l' {
+/// * `data` - bytes to decode.
+/// * `index` - index of where to start decoding.
+fn decode_list(data: &[u8], index: &mut usize) -> Result<Value> {
+    if get(data, *index)? as char == 'l' {
         *index += 1;
     } else {
         return Err(anyhow!("Lists must start with 'l'"));
@@ -145,27 +154,28 @@ pub fn list(data: &mut [u8], index: &mut usize) -> Result<Value> {
     let mut list = vec![];
 
     loop {
-        match get(data, index)? {
+        match get(data, *index)? {
             // End character 'e'
-            101 => {
+            b'e' => {
                 *index += 1;
 
                 return Ok(Value::List(list));
             }
             // Other
-            _ => list.push(any(data, index)?),
+            _ => list.push(decode(data, index)?),
         }
     }
 }
 
-/// Parses dictionaries (example: d3:key5:valuee)
+
+/// Decode a bencoded dictionary.
 ///
 /// # Arguments
 ///
-/// * `data` - mutable reference to data to decode
-/// * `index` - mutable reference to the (data) index
-pub fn dictionary(data: &mut [u8], index: &mut usize) -> Result<Value> {
-    if get(data, index)? as char == 'd' {
+/// * `data` - bytes to decode.
+/// * `index` - index of where to start decoding.
+fn decode_dictionary(data: &[u8], index: &mut usize) -> Result<Value> {
+    if get(data, *index)? as char == 'd' {
         *index += 1;
     } else {
         return Err(anyhow!("Dictionaries must start with 'd'"));
@@ -175,9 +185,9 @@ pub fn dictionary(data: &mut [u8], index: &mut usize) -> Result<Value> {
     let mut current_key: Option<Vec<u8>> = None;
 
     loop {
-        match get(data, index)? {
+        match get(data, *index)? {
             // End character 'e'
-            101 => {
+            b'e' => {
                 *index += 1;
 
                 return Ok(Value::Dictionary(dictionary));
@@ -185,13 +195,13 @@ pub fn dictionary(data: &mut [u8], index: &mut usize) -> Result<Value> {
             // Other
             _ => {
                 if current_key.is_none() {
-                    if let Ok(Value::ByteString(new_key)) = byte_string(data, index) {
+                    if let Ok(Value::ByteString(new_key)) = decode_byte_string(data, index) {
                         current_key = Some(new_key);
                     } else {
                         return Err(anyhow!("Dictionary key must be a byte string"));
                     }
                 } else {
-                    let new_value = any(data, index)?;
+                    let new_value = decode(data, index)?;
                     dictionary.insert(current_key.unwrap(), new_value);
                     current_key = None;
                 }
