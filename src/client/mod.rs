@@ -1,6 +1,7 @@
 pub mod message;
 
 mod peer;
+mod protocol;
 mod request;
 mod response;
 
@@ -48,7 +49,13 @@ impl Client {
         let final_url = format!("{}?{}", announce, params.as_url_params());
 
         let response = reqwest::blocking::get(final_url)?.bytes()?.to_vec();
-        let tracker_response = TrackerResponse::from_bytes(response)?;
+        let mut tracker_response = TrackerResponse::from_bytes(response)?;
+        
+        if let Some(peers) = tracker_response.peers.as_mut() {
+            for peer in peers {
+                peer.info_hash = Some(params.info_hash.clone());
+            }
+        }
 
         self.last_response = Some(tracker_response);
 

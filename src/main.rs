@@ -15,7 +15,8 @@ use anyhow::{anyhow, Result};
 use clap::Parser;
 use std::convert::TryFrom;
 
-fn main() -> Result<()> {
+#[async_std::main]
+async fn main() -> Result<()> {
     let args = Cli::parse();
 
     if let Ok(mut bytes) = std::fs::read(args.path) {
@@ -23,8 +24,10 @@ fn main() -> Result<()> {
         let mut client = Client::new(torrent)?;
 
         client.send_tracker_request()?;
+        client.start();
 
-        println!("{:?}", client.last_response);
+        // wait
+        std::io::stdin().read_line(&mut String::new()).unwrap();
     } else {
         return Err(anyhow!("Failed reading torrent file"));
     }
