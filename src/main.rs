@@ -15,14 +15,19 @@ use anyhow::{anyhow, Result};
 use clap::Parser;
 use std::convert::TryFrom;
 
-fn main() -> Result<()> {
+#[async_std::main]
+async fn main() -> Result<()> {
     let args = Cli::parse();
 
     if let Ok(mut bytes) = std::fs::read(args.path) {
         let torrent = Torrent::try_from(&mut bytes)?;
-        let client = Client::new(torrent)?;
+        let mut client = Client::new(torrent)?;
 
-        println!("{:?}", client);
+        client.send_tracker_request()?;
+        client.start();
+
+        // wait
+        std::io::stdin().read_line(&mut String::new()).unwrap();
     } else {
         return Err(anyhow!("Failed reading torrent file"));
     }
