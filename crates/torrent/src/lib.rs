@@ -1,14 +1,8 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+//! # Torrent
+//! 
+//! `torrent` is a library for decoding a `.torrent` file and 
+//! transforming it into a data struct.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+mod torrent_struct;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use torrent_struct::Torrent;
