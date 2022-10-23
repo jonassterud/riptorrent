@@ -2,12 +2,12 @@ use super::*;
 use anyhow::{anyhow, Result};
 use std::collections::BTreeMap;
 
-/// Get value from dictionary, returns `None` if not found
+/// Get value from dictionary, returns `None` if not found.
 ///
 /// # Arguments
 ///
-/// * `map` - `BTreeMap` to search trough
-/// * `key` - key to search for
+/// * `map` - `BTreeMap` to search trough.
+/// * `key` - key to search for.
 fn get(map: &BTreeMap<Vec<u8>, bcode::Value>, key: &str) -> Result<bcode::Value> {
     map.get(key.as_bytes())
         .ok_or_else(|| anyhow!("Could not find \"{key}\" in map"))
@@ -15,12 +15,16 @@ fn get(map: &BTreeMap<Vec<u8>, bcode::Value>, key: &str) -> Result<bcode::Value>
 }
 
 impl Torrent {
+    /// Converts a vector of bytes to a `Torrent`.
+    ///
+    /// # Arguments
+    ///
+    /// * `vec` - byte vector.
     pub fn from_utf8(vec: Vec<u8>) -> Result<Torrent> {
         let main_map: BTreeMap<Vec<u8>, bcode::Value> = bcode::decode(&vec, &mut 0)?.try_into()?; // ?
         let info_map: BTreeMap<Vec<u8>, bcode::Value> = get(&main_map, "info")?.try_into()?;
 
         let piece_length: i64 = get(&info_map, "piece length")?.try_into()?;
-        println!("1");
         let pieces: Vec<u8> = get(&info_map, "pieces")?.try_into()?;
         let private: Option<bool> = get(&info_map, "private")
             .ok()
@@ -125,6 +129,11 @@ impl Torrent {
             comment,
             created_by,
             encoding,
+
+            info_hash: sha1_smol::Sha1::from(bcode::encode(get(&main_map, "info")?)?)
+                .digest()
+                .bytes()
+                .to_vec(),
         })
     }
 }

@@ -11,3 +11,4 @@ license = "MIT"
 bcode = { version = "0.1.*", path = "../bcode" }
 
 anyhow = { version = "1.0.65" }
+sha1_smol = { version = "1.0.0" }

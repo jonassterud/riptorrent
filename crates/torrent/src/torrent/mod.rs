@@ -9,6 +9,8 @@ pub struct Torrent {
     pub comment: Option<String>,
     pub created_by: Option<String>,
     pub encoding: Option<String>,
+
+    pub info_hash: Vec<u8>,
 }
 
 #[derive(Debug)]

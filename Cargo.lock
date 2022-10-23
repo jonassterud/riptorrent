@@ -164,6 +164,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "sha1_smol"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ae1a47186c03a32177042e55dbc5fd5aee900b8e0069a8d70fba96a9375cd012"
+
+[[package]]
 name = "slab"
 version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -189,6 +195,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bcode",
+ "sha1_smol",
 ]
 
 [[package]]
