@@ -94,3 +94,15 @@ impl TryFrom<Value> for BTreeMap<Vec<u8>, Value> {
         }
     }
 }
+
+/// Get value from dictionary, returns `None` if not found.
+///
+/// # Arguments
+///
+/// * `map` - `BTreeMap` to search trough.
+/// * `key` - key to search for.
+pub fn map_get(map: &BTreeMap<Vec<u8>, Value>, key: &str) -> Result<Value> {
+    map.get(key.as_bytes())
+        .ok_or_else(|| anyhow!("Could not find \"{key}\" in map"))
+        .cloned()
+}

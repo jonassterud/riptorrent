@@ -5,4 +5,4 @@
 
 mod torrent;
 
-pub use torrent::Torrent;
+pub use crate::torrent::Torrent;

@@ -11,8 +11,11 @@ repository = "https://github.com/jonassterud/riptorrent"
 license = "MIT"
 
 [dependencies]
-bcode = { version = "0.1.*", path = "crates/bcode" }
-torrent = { version = "0.1.*", path = "crates/torrent" }
+bcode = { version = "0.1", path = "crates/bcode" }
+torrent = { version = "0.1", path = "crates/torrent" }
+tracker = { version = "0.1", path = "crates/tracker" }
 
-anyhow = { version = "1.0.65" }
-futures = { version = "0.3.24" }
+anyhow = { version = "1.0" }
+clap = { version = "4.0", features = ["derive"] }
+async-std = { version = "1.12", features = ["attributes"] }
+futures = { version = "0.3" }
