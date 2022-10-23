@@ -1,6 +1,6 @@
 use crate::*;
-use std::collections::BTreeMap;
 use anyhow::{anyhow, Result};
+use std::collections::BTreeMap;
 
 /// Decode data as bcode to a `bcode::Value`.
 ///
@@ -40,7 +40,6 @@ fn get(data: &[u8], at: usize) -> Result<u8> {
         Ok(*data.get(at).unwrap())
     }
 }
-
 
 /// Decode a bencoded integer.
 ///
@@ -166,7 +165,6 @@ fn decode_list(data: &[u8], index: &mut usize) -> Result<Value> {
         }
     }
 }
-
 
 /// Decode a bencoded dictionary.
 ///

@@ -10,40 +10,62 @@ pub enum Value {
     Dictionary(BTreeMap<Vec<u8>, Value>),
 }
 
-impl Value {
-    /// Get the inner value of `Value::Integer(i64)`.
-    pub fn get_inner_integer(&self) -> Result<i64> {
-        if let Value::Integer(inner) = self {
-            Ok(inner.to_owned())
-        } else {
-            Err(anyhow!("{:?} is not a `Value::Integer`", self))
-        }
+impl From<i64> for Value {
+    fn from(integer: i64) -> Self {
+        Value::Integer(integer)
     }
+}
 
-    /// Get the inner value of `Value::ByteString(Vec<u8>)`.
-    pub fn get_inner_byte_string(&self) -> Result<Vec<u8>> {
-        if let Value::ByteString(inner) = self {
-            Ok(inner.to_owned())
-        } else {
-            Err(anyhow!("{:?} is not a `Value::ByteString`", self))
-        }
+impl From<Value> for i64 {
+    fn from(val: Value) -> Self {
+        val.into()
     }
+}
 
-    /// Get the inner value of `Value::List(Vec<Value>)`.
-    pub fn get_inner_list(&self) -> Result<Vec<Value>> {
-        if let Value::List(inner) = self {
-            Ok(inner.to_owned())
-        } else {
-            Err(anyhow!("{:?} is not a `Value::List`", self))
-        }
+impl From<Vec<u8>> for Value {
+    fn from(byte_string: Vec<u8>) -> Self {
+        Value::ByteString(byte_string)
     }
+}
 
-    /// Get the inner value of `Value::Dictionary(BTreeMap<Vec<u8>, Value>)`.
-    pub fn get_inner_dictionary(&self) -> Result<BTreeMap<Vec<u8>, Value>> {
-        if let Value::Dictionary(inner) = self {
-            Ok(inner.to_owned())
-        } else {
-            Err(anyhow!("{:?} is not a `Value::Dictionary`", self))
-        }
+impl From<Value> for Vec<u8> {
+    fn from(val: Value) -> Self {
+        val.into()
+    }
+}
+
+impl From<String> for Value {
+    fn from(string: String) -> Self {
+        Value::ByteString(string.into_bytes())
+    }
+}
+
+impl From<Value> for String {
+    fn from(val: Value) -> Self {
+        val.into()
+    }
+}
+
+impl From<Vec<Value>> for Value {
+    fn from(list: Vec<Value>) -> Self {
+        Value::List(list)
+    }
+}
+
+impl From<Value> for Vec<Value> {
+    fn from(val: Value) -> Self {
+        val.into()
+    }
+}
+
+impl From<BTreeMap<Vec<u8>, Value>> for Value {
+    fn from(dictionary: BTreeMap<Vec<u8>, Value>) -> Self {
+        Value::Dictionary(dictionary)
+    }
+}
+
+impl From<Value> for BTreeMap<Vec<u8>, Value> {
+    fn from(val: Value) -> Self {
+        val.into()
     }
 }

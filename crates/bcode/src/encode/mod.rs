@@ -1,6 +1,6 @@
 use crate::*;
-use std::collections::BTreeMap;
 use anyhow::Result;
+use std::collections::BTreeMap;
 
 /// Encode a `bcode::Value` to bcode.
 ///
@@ -74,7 +74,7 @@ pub fn encode_list(data: Vec<Value>) -> Result<Vec<u8>> {
 /// * `data` - `BTreeMap<Vec<u8>, Value>` to encode
 pub fn encode_dictionary(data: BTreeMap<Vec<u8>, Value>) -> Result<Vec<u8>> {
     let mut out: Vec<u8> = vec![];
-    
+
     out.push(b'd');
 
     for (k, v) in data {

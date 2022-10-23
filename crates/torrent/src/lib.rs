@@ -1,8 +1,8 @@
 //! # Torrent
-//! 
-//! `torrent` is a library for decoding a `.torrent` file and 
+//!
+//! `torrent` is a library for decoding a `.torrent` file and
 //! transforming it into a data struct.
 
-mod torrent_struct;
+mod torrent;
 
-pub use torrent_struct::Torrent;
+pub use torrent::Torrent;
