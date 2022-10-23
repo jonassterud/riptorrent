@@ -10,11 +10,19 @@ async fn main() -> Result<()> {
 
     if let Ok(bytes) = std::fs::read(args.path) {
         let torrent = Torrent::from_bytes(bytes).await?;
-        let tracker_request =
-            tracker::Request::from_torrent(&torrent, b"j9jkjkj9jshdhghfj398".to_vec()).await;
+
+        let peer_id = b"j9jkjkj9jshdhghfj398".to_vec();
+        let tracker_request = tracker::Request::from_torrent(&torrent, peer_id).await;
         let tracker_resp = tracker_request.send_request().await?;
 
-        println!("{:?}", tracker_resp);
+        for peer in tracker_resp.peers {
+            async_std::task::spawn(async move {
+                todo!()
+            });
+        }
+
+        // wait
+        std::io::stdin().read_line(&mut String::new()).unwrap();
 
         Ok(())
     } else {

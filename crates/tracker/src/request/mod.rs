@@ -83,7 +83,7 @@ impl Request {
             urlencoding::encode(&self.event.to_string()),
         );
 
-        let bytes = reqwest::get(final_url).await?. bytes().await?;
+        let bytes = reqwest::get(final_url).await?.bytes().await?;
         Response::from_bytes(bytes.to_vec())
     }
 }
