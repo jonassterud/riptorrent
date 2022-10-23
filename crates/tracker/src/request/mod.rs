@@ -13,17 +13,18 @@ pub struct Request {
     pub uploaded: i64,
     pub downloaded: i64,
     pub left: i64,
-    pub compact: i64,
-    pub no_peer_id: i64,
     pub event: String, // "started" | "stopped" | "completed"
-    //pub ip: IpAddr,
-    pub numwant: i64,
-    //pub key: Vec<u8>,
-    //pub trackerid: Vec<u8>,
+                       //pub compact: i64,
+                       //pub no_peer_id: i64,
+                       //pub ip: IpAddr,
+                       //pub numwant: i64,
+                       //pub key: Vec<u8>,
+                       //pub trackerid: Vec<u8>,
 }
 
 impl Request {
     /// Create a new request
+    #[allow(clippy::too_many_arguments)]
     pub async fn new(
         announce: String,
         info_hash: Vec<u8>,
@@ -42,13 +43,7 @@ impl Request {
             uploaded,
             downloaded,
             left,
-            compact: 1,
-            no_peer_id: 1,
             event,
-            //ip,
-            numwant: 50,
-            //key: vec![],
-            //trackerid: vec![],
         }
     }
 
@@ -74,7 +69,10 @@ impl Request {
 
     /// Send a tracker request.
     pub async fn send_request(&self) -> Result<Response> {
-        let final_url = format!("{}?info_hash={}&peer_id={}&port={}&uploaded={}&downloaded={}&left={}&compact={}&no_peer_id={}&event={}&numwant={}",
+        //println!("{}", self.announce);
+
+        let final_url = format!(
+            "{}?info_hash={}&peer_id={}&port={}&uploaded={}&downloaded={}&left={}&event={}",
             self.announce,
             urlencoding::encode_binary(&self.info_hash),
             urlencoding::encode_binary(&self.peer_id),
@@ -82,18 +80,10 @@ impl Request {
             urlencoding::encode(&self.uploaded.to_string()),
             urlencoding::encode(&self.downloaded.to_string()),
             urlencoding::encode(&self.left.to_string()),
-            urlencoding::encode(&self.compact.to_string()),
-            urlencoding::encode(&self.no_peer_id.to_string()),
             urlencoding::encode(&self.event.to_string()),
-            urlencoding::encode(&self.numwant.to_string()),
         );
 
-        let mut bytes = vec![];
-        ureq::get(&final_url)
-            .call()?
-            .into_reader()
-            .read_to_end(&mut bytes)?;
-
-        Response::from_bytes(bytes)
+        let bytes = reqwest::get(final_url).await?. bytes().await?;
+        Response::from_bytes(bytes.to_vec())
     }
 }
