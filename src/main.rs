@@ -10,7 +10,11 @@ async fn main() -> Result<()> {
 
     if let Ok(bytes) = std::fs::read(args.path) {
         let torrent = Torrent::from_bytes(bytes).await?;
-        println!("{:?}", torrent);
+        let tracker_request =
+            tracker::Request::from_torrent(&torrent, b"j9jkjkj9jshdhghfj398".to_vec()).await;
+        let tracker_resp = tracker_request.send_request().await?;
+
+        println!("{:?}", tracker_resp);
 
         Ok(())
     } else {

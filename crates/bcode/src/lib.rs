@@ -12,4 +12,4 @@ mod value;
 
 pub use crate::decode::decode;
 pub use crate::encode::encode;
-pub use crate::value::{Value, map_get};
+pub use crate::value::{map_get, Value};

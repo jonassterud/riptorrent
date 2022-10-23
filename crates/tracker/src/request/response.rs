@@ -1,8 +1,8 @@
 use anyhow::{anyhow, Result};
 use arrayref::array_ref;
-use std::net::{IpAddr, Ipv4Addr};
-use std::collections::BTreeMap;
 use bcode::map_get;
+use std::collections::BTreeMap;
+use std::net::{IpAddr, Ipv4Addr};
 
 #[derive(Debug)]
 pub struct Response {
@@ -24,7 +24,7 @@ pub struct Peer {
 }
 
 impl Response {
-     /// Converts a vector of bytes to a `Response`.
+    /// Converts a vector of bytes to a `Response`.
     ///
     /// # Arguments
     ///
@@ -32,13 +32,27 @@ impl Response {
     pub fn from_bytes(vec: Vec<u8>) -> Result<Response> {
         let main_map: BTreeMap<Vec<u8>, bcode::Value> = bcode::decode(&vec, &mut 0)?.try_into()?;
 
-        let failure_reason: Option<String> = Some(map_get(&main_map, "failure reason")?.try_into()?);
-        let warning_message: Option<String> = Some(map_get(&main_map, "warning message")?.try_into()?);
+        let failure_reason: Option<String> = map_get(&main_map, "failure reason")
+            .ok()
+            .map(|x| -> Result<String> { x.try_into() })
+            .transpose()?;
+        let warning_message: Option<String> = map_get(&main_map, "warning message")
+            .ok()
+            .map(|x| -> Result<String> { x.try_into() })
+            .transpose()?;
         let interval: Option<i64> = Some(map_get(&main_map, "interval")?.try_into()?);
-        let min_interval: Option<i64> = Some(map_get(&main_map, "min interval")?.try_into()?);
-        let tracker_id: Option<String> = Some(map_get(&main_map, "tracker id")?.try_into()?);
+        let min_interval: Option<i64> = map_get(&main_map, "min interval")
+            .ok()
+            .map(|x| -> Result<i64> { x.try_into() })
+            .transpose()?;
+        let tracker_id: Option<String> = map_get(&main_map, "tracker id")
+            .ok()
+            .map(|x| -> Result<String> { x.try_into() })
+            .transpose()?;
         let complete: Option<i64> = Some(map_get(&main_map, "complete")?.try_into()?);
         let incomplete: Option<i64> = Some(map_get(&main_map, "incomplete")?.try_into()?);
+
+        println!("{:?}", main_map);
 
         let peers = match map_get(&main_map, "peers")? {
             bcode::Value::List(peers_list) => {
@@ -46,7 +60,7 @@ impl Response {
 
                 for peer_map in peers_list {
                     let peer_map: BTreeMap<Vec<u8>, bcode::Value> = peer_map.try_into()?;
-                    
+
                     let peer_id: String = map_get(&peer_map, "peer id")?.try_into()?;
                     let ip: String = map_get(&peer_map, "ip")?.try_into()?;
                     let port: i64 = map_get(&peer_map, "port")?.try_into()?;
@@ -57,9 +71,9 @@ impl Response {
                         port: Some(port as u16),
                     });
                 }
-                
+
                 Ok(out)
-            },
+            }
             bcode::Value::ByteString(peers_bytes) => {
                 let mut out = vec![];
 
@@ -73,12 +87,11 @@ impl Response {
                         port: Some(port),
                     })
                 }
-                
+
                 Ok(out)
-            },
+            }
             _ => Err(anyhow!("Unsupported peers model")),
         }?;
-        
 
         Ok(Response {
             failure_reason,

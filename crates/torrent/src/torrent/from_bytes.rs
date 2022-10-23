@@ -1,7 +1,7 @@
 use super::*;
 use anyhow::{anyhow, Result};
-use std::collections::BTreeMap;
 use bcode::map_get;
+use std::collections::BTreeMap;
 
 impl Torrent {
     /// Converts a vector of bytes to a `Torrent`.

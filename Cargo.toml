@@ -17,5 +17,5 @@ tracker = { version = "0.1", path = "crates/tracker" }
 
 anyhow = { version = "1.0" }
 clap = { version = "4.0", features = ["derive"] }
-async-std = { version = "1.12", features = ["attributes"] }
+async-std = { version = "1.12", features = ["attributes", "tokio1"] }
 futures = { version = "0.3" }
