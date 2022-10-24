@@ -4,7 +4,7 @@ use bcode::map_get;
 use std::collections::BTreeMap;
 
 impl Torrent {
-    /// Converts a vector of bytes to a `Torrent`.
+    /// Converts a byte vector to a `Torrent`.
     ///
     /// # Arguments
     ///

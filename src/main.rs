@@ -16,9 +16,7 @@ async fn main() -> Result<()> {
         let tracker_resp = tracker_request.send_request().await?;
 
         for peer in tracker_resp.peers {
-            async_std::task::spawn(async move {
-                todo!()
-            });
+            async_std::task::spawn(async move { todo!() });
         }
 
         // wait

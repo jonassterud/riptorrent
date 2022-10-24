@@ -1,0 +1,12 @@
+[package]
+name = "message"
+version = "0.1.0"
+authors = ["Jonas Mathisrud Sterud <jonas.sterud@gmail.com>"]
+edition = "2021"
+description = "Message interface for BitTorrent messages"
+repository = "https://github.com/jonassterud/riptorrent"
+license = "MIT"
+
+[dependencies]
+arrayref = { version = "0.3" }
+anyhow = { version = "1.0" }
