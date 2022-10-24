@@ -1,0 +1,16 @@
+[package]
+name = "torrent"
+version = "0.1.0"
+authors = ["Jonas Mathisrud Sterud <jonas.sterud@gmail.com>"]
+edition = "2021"
+description = "Read and decode a .torrent file into a struct"
+repository = "https://github.com/jonassterud/riptorrent"
+license = "MIT"
+
+[dependencies]
+bcode = { version = "0.1", path = "../bcode" }
+
+anyhow = { version = "1.0" }
+async-std = { version = "1.12", features = ["attributes"] }
+futures = { version = "0.3" }
+sha1_smol = { version = "1.0" }

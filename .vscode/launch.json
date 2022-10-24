@@ -4,6 +4,101 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug unit tests in library 'bcode'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bcode"
+                ],
+                "filter": {
+                    "name": "bcode",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'decode_bcode'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=decode_bcode",
+                    "--package=bcode"
+                ],
+                "filter": {
+                    "name": "decode_bcode",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'encode_bcode'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=encode_bcode",
+                    "--package=bcode"
+                ],
+                "filter": {
+                    "name": "encode_bcode",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'torrent'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=torrent"
+                ],
+                "filter": {
+                    "name": "torrent",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'decode_torrent'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=decode_torrent",
+                    "--package=torrent"
+                ],
+                "filter": {
+                    "name": "decode_torrent",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug executable 'riptorrent'",
             "cargo": {
                 "args": [
