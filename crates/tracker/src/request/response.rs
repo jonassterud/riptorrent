@@ -4,6 +4,7 @@ use bcode::map_get;
 use std::collections::BTreeMap;
 use std::net::IpAddr;
 
+/// Struct representing a response from a tracker request.
 #[derive(Debug)]
 pub struct Response {
     pub failure_reason: Option<String>,
@@ -16,6 +17,7 @@ pub struct Response {
     pub peers: Vec<Peer>,
 }
 
+/// Struct representing a peer from a tracker response.
 #[derive(Debug)]
 pub struct Peer {
     pub peer_id: Option<Vec<u8>>,

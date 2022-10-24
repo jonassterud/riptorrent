@@ -16,6 +16,11 @@ pub async fn read_message(stream: &mut TcpStream, buf: &mut [u8]) -> Result<usiz
 }
 
 /// Send a `Message` to the stream.
+///
+/// # Arguments
+///
+/// * `stream` - async `TcpStream`.
+/// * `message` - message to send.
 pub async fn send_message(stream: &mut TcpStream, message: Message) -> Result<()> {
     let bytes = message.into_bytes();
     stream.write_all(&bytes).await?;
@@ -24,6 +29,12 @@ pub async fn send_message(stream: &mut TcpStream, message: Message) -> Result<()
 }
 
 /// Send a handshake to the stream.
+///
+/// # Arguments
+///
+/// * `stream` - async `TcpStream`.
+/// * `info_hash` - info hash of the torrent.
+/// * `peer_id` - this clients peer id.
 pub async fn send_handshake(
     stream: &mut TcpStream,
     info_hash: &[u8],
@@ -54,7 +65,7 @@ pub async fn read_handshake(stream: &mut TcpStream) -> Result<Vec<u8>> {
     let mut buf = vec![0; buf_length];
 
     read_message(stream, &mut buf).await?;
-    
+
     let mut out = pstrlen.clone();
     out.append(&mut buf);
 

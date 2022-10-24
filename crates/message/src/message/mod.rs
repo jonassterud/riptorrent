@@ -56,6 +56,10 @@ impl Message {
     }
 
     /// Construct a "have" message.
+    ///
+    /// # Arguments
+    ///
+    /// * `piece_index` - index of piece.
     pub fn new_have(piece_index: u32) -> Message {
         Message {
             length: 5,
@@ -65,6 +69,10 @@ impl Message {
     }
 
     /// Construct a "bitfield" message.
+    ///
+    /// # Arguments
+    ///
+    /// * `bitfield` - bitfield representing the pieces that have been downloaded.
     pub fn new_bitfield(bitfield: Vec<u8>) -> Message {
         Message {
             length: 1 + bitfield.len() as u32,
@@ -74,6 +82,12 @@ impl Message {
     }
 
     /// Construct a "request" message.
+    ///
+    /// # Arguments
+    ///
+    /// * `index` - piece index.
+    /// * `begin` - byte offset within the piece.
+    /// * `length` - length from byte offset.
     pub fn new_request(index: u32, begin: u32, length: u32) -> Message {
         let mut buf = vec![];
         buf.append(&mut index.to_be_bytes().to_vec());
@@ -88,6 +102,12 @@ impl Message {
     }
 
     /// Construct a "piece" message.
+    ///
+    /// # Arguments
+    ///
+    /// * `index` - piece index.
+    /// * `begin` - byte offset within the piece.
+    /// * `block` - piece data.
     pub fn new_piece(index: u32, begin: u32, mut block: Vec<u8>) -> Message {
         let mut buf = vec![];
         buf.append(&mut index.to_be_bytes().to_vec());
@@ -102,6 +122,12 @@ impl Message {
     }
 
     /// Construct a "cancel" message.
+    ///
+    /// # Arguments
+    ///
+    /// * `index` - piece index.
+    /// * `begin` - byte offset within the piece.
+    /// * `length` - length from byte offset.
     pub fn new_cancel(index: u32, begin: u32, length: u32) -> Message {
         let mut buf = vec![];
         buf.append(&mut index.to_be_bytes().to_vec());
@@ -116,6 +142,10 @@ impl Message {
     }
 
     /// Construct a "port" message.
+    ///
+    /// # Arguments
+    ///
+    /// * `port` - listen port.
     pub fn new_port(port: u16) -> Message {
         Message {
             length: 3,

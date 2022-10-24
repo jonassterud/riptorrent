@@ -4,6 +4,7 @@ use anyhow::Result;
 use response::Response;
 use torrent::Torrent;
 
+/// Struct representing a tracker request.
 #[derive(Debug)]
 pub struct Request {
     pub announce: String,
@@ -14,13 +15,14 @@ pub struct Request {
     pub downloaded: i64,
     pub left: i64,
     pub event: String, // "started" | "stopped" | "completed"
-                       //pub compact: i64,
-                       //pub no_peer_id: i64,
-                       //pub ip: IpAddr,
-                       //pub numwant: i64,
-                       //pub key: Vec<u8>,
-                       //pub trackerid: Vec<u8>,
 }
+
+//pub compact: i64,
+//pub no_peer_id: i64,
+//pub ip: IpAddr,
+//pub numwant: i64,
+//pub key: Vec<u8>,
+//pub trackerid: Vec<u8>,
 
 impl Request {
     /// Create a new request
@@ -61,7 +63,7 @@ impl Request {
             6881_u16,
             0,
             0,
-            torrent.get_left(),
+            torrent.get_size(),
             "started".to_string(),
         )
         .await
@@ -69,8 +71,6 @@ impl Request {
 
     /// Send a tracker request.
     pub async fn send_request(&self) -> Result<Response> {
-        //println!("{}", self.announce);
-
         let final_url = format!(
             "{}?info_hash={}&peer_id={}&port={}&uploaded={}&downloaded={}&left={}&event={}",
             self.announce,
