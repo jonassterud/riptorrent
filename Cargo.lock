@@ -858,6 +858,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "protocol"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-std",
+ "bcode",
+ "futures",
+ "message",
+ "torrent",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -930,6 +942,7 @@ dependencies = [
  "bcode",
  "clap",
  "futures",
+ "protocol",
  "torrent",
  "tracker",
 ]

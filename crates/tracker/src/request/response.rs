@@ -90,7 +90,6 @@ impl Response {
             _ => Err(anyhow!("Unsupported peers model")),
         }?;
 
-        println!("still not failing!");
         Ok(Response {
             failure_reason,
             warning_message,
