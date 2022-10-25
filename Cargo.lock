@@ -938,10 +938,12 @@ name = "riptorrent"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "arrayref",
  "async-std",
  "bcode",
  "clap",
  "futures",
+ "message",
  "protocol",
  "torrent",
  "tracker",

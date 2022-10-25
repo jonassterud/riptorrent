@@ -8,7 +8,7 @@ impl Message {
         out.append(&mut self.length.to_be_bytes().to_vec());
 
         if self.message_id.is_some() {
-            out.append(&mut self.message_id.unwrap().to_be_bytes().to_vec());
+            out.push(self.message_id.unwrap());
         }
 
         if self.payload.is_some() {
