@@ -71,20 +71,21 @@ async fn main() -> Result<()> {
                 .await?;
                 println!("Sent \"bitfield\" to peer.");
             
-                // Send "unchoke" to peer.
-                protocol::send_message(stream.clone(), Message::new_unchoke()).await?;
-                am_choking = false;
-                println!("Sent: \"unchoke\" to peer.");
-
                 // Send "interested" to peer.
                 protocol::send_message(stream.clone(), Message::new_interested()).await?;
                 am_interested = true;
                 println!("Sent: \"interested\" to peer.");
 
+                // Send "unchoke" to peer.
+                protocol::send_message(stream.clone(), Message::new_unchoke()).await?;
+                am_choking = false;
+                println!("Sent: \"unchoke\" to peer.");
+
                 // Communication loop with peer.
                 loop {
                     // TODO: Send "request" to peer.
                     if am_interested && !peer_choking {
+                        // TODO: Is length too high for the torrent?
                         protocol::send_message(stream.clone(), Message::new_request(0, 0, u32::pow(2, 14))).await?;
                         println!("Sent: \"request\" to peer.");
                         am_interested = false;
