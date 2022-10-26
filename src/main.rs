@@ -2,7 +2,7 @@ mod cli;
 
 use anyhow::{anyhow, Result};
 use arrayref::array_ref;
-use async_std::sync::{Arc, Mutex, RwLock};
+use async_std::sync::{Arc, Mutex};
 use cli::*;
 use message::Message;
 use torrent::Torrent;
@@ -32,7 +32,10 @@ async fn main() -> Result<()> {
                 torrent.get_piece_amount()
             ]));
 
-        println!("Peer amount: {}", tracker_resp.peers.len());
+        
+
+        // Print info
+        println!("Peer amount: {}\nPiece amount: {}\nPiece length: {}", tracker_resp.peers.len(), torrent.get_piece_amount(), torrent.get_piece_length());
 
         // Loop trough peers.
         for peer in tracker_resp.peers {
@@ -77,9 +80,9 @@ async fn main() -> Result<()> {
                 println!("Sent: \"interested\" to peer.");
 
                 // Send "unchoke" to peer.
-                protocol::send_message(stream.clone(), Message::new_unchoke()).await?;
-                am_choking = false;
-                println!("Sent: \"unchoke\" to peer.");
+                //protocol::send_message(stream.clone(), Message::new_unchoke()).await?;
+                //am_choking = false;
+                //println!("Sent: \"unchoke\" to peer.");
 
                 // Communication loop with peer.
                 loop {
