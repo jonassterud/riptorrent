@@ -113,7 +113,7 @@ impl Message {
         buf.append(&mut begin.to_be_bytes().to_vec());
         buf.append(&mut length.to_be_bytes().to_vec());
 
-        Message::Bitfield((6, buf))
+        Message::Request((6, buf))
     }
 
     /// Construct a "piece" message.
@@ -154,6 +154,6 @@ impl Message {
     ///
     /// * `port` - listen port.
     pub fn new_port(port: u16) -> Message {
-        Message::Bitfield((9, port.to_be_bytes().to_vec()))
+        Message::Port((9, port.to_be_bytes().to_vec()))
     }
 }
