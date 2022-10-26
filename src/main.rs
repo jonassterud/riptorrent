@@ -94,7 +94,7 @@ async fn main() -> Result<()> {
                     // Read message
                     let recieved_message = protocol::read_message(stream.clone()).await?;
                     if recieved_message.get_id().is_some() {
-                        println!("Recieved: {:?}", recieved_message);
+                        println!("Recieved: {}", recieved_message.get_name());
                     }
 
                     match recieved_message {

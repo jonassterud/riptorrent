@@ -33,6 +33,23 @@ impl Message {
         }
     }
 
+    /// Get descriptive name of the message variant.
+    pub fn get_name(&self) -> &str {
+        match self {
+            Message::KeepAlive => "Keep alive",
+            Message::Choke(_) => "Choke ",
+            Message::Unchoke(_) => "Unchoke",
+            Message::Interested(_) => "Interested",
+            Message::NotInterested(_) => "Not interested",
+            Message::Have(_) => "Have",
+            Message::Bitfield(_) => "Bitfield",
+            Message::Request(_) => "Request",
+            Message::Piece(_) => "Piece",
+            Message::Cancel(_) => "Cancel",
+            Message::Port(_) => "Port",
+        }
+    }
+
     /// Returns the payload in a message (or an empty vector, if none).
     pub fn get_payload(&self) -> Vec<u8> {
         use Message::*;
