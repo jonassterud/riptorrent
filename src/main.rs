@@ -38,7 +38,8 @@ async fn main() -> Result<()> {
                 let mut peer_choking = true;
                 let mut peer_interested = false;
 
-                println!("Opening stream to : {:?}", peer.ip);
+                // TODO: IPV6 not working?
+                println!("Opening stream to : {:?} -> {:?}", peer.ip, peer.port);
                 // Open stream
                 let mut stream = protocol::open_stream(
                     peer.ip.ok_or_else(|| anyhow!("Missing ip"))?,
@@ -46,7 +47,7 @@ async fn main() -> Result<()> {
                 )
                 .await?;
 
-                println!("Opened stream");
+                println!("Opened stream to: {}", peer.ip.unwrap());
 
                 // Handshake
                 protocol::send_handshake(&mut stream, &info_hash, &peer_id).await?;
@@ -61,7 +62,7 @@ async fn main() -> Result<()> {
 
                 loop {
                     let message_from_peer = protocol::read_message(&mut stream).await?;
-                    match message_from_peer.message_id {
+                    match message_from_peer.get_id() {
                         Some(0) => peer_choking = true,
                         Some(1) => peer_choking = false,
                         Some(2) => peer_interested = true,
@@ -71,8 +72,7 @@ async fn main() -> Result<()> {
                             if let Some(bitfield) = &mut peer_bitfield {
                                 // should piece index be bigger than u32?
                                 let payload = message_from_peer
-                                    .payload
-                                    .ok_or_else(|| anyhow!("Missing payload"))?;
+                                    .get_payload();
                                 let piece_index = u32::from_be_bytes(*array_ref![payload, 0, 4]);
 
                                 // I think this works.. TODO
@@ -89,8 +89,7 @@ async fn main() -> Result<()> {
                             println!("Recieved bitfield!");
                             peer_bitfield = Some(
                                 message_from_peer
-                                    .payload
-                                    .ok_or_else(|| anyhow!("Missing payload"))?,
+                                    .get_payload()
                             );
                         }
                         Some(6) => {
@@ -98,8 +97,7 @@ async fn main() -> Result<()> {
                         }
                         Some(7) => {
                             let payload = message_from_peer
-                                .payload
-                                .ok_or_else(|| anyhow!("Missing payload"))?;
+                                .get_payload();
 
                             let piece_index = u32::from_be_bytes(*array_ref![payload, 0, 4]);
                             let piece_begin =

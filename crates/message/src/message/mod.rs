@@ -1,58 +1,85 @@
 mod from_bytes;
 mod into_bytes;
 
+pub type MessageData = (u8, Vec<u8>);
+
 /// A message used to communicate on the BitTorrent network.
 #[derive(Debug, PartialEq, Eq)]
-pub struct Message {
-    pub length: u32,
-    pub message_id: Option<u8>,
-    pub payload: Option<Vec<u8>>,
+pub enum Message {
+    KeepAlive,
+    Choke(MessageData),
+    Unchoke(MessageData),
+    Interested(MessageData),
+    NotInterested(MessageData),
+    Have(MessageData),
+    Bitfield(MessageData),
+    Request(MessageData),
+    Piece(MessageData),
+    Cancel(MessageData),
+    Port(MessageData),
+}
+
+impl Message {
+    /// Returns the id of a message, if any.
+    pub fn get_id(&self) -> Option<u8> {
+        use Message::*;
+
+        match self {
+            KeepAlive => None,
+            Choke(data) | Unchoke(data) | Interested(data) | NotInterested(data) | Have(data)
+            | Bitfield(data) | Request(data) | Piece(data) | Cancel(data) | Port(data) => {
+                Some(data.0)
+            }
+        }
+    }
+
+    /// Returns the payload in a message (or an empty vector, if none).
+    pub fn get_payload(&self) -> Vec<u8> {
+        use Message::*;
+
+        match self {
+            KeepAlive => vec![],
+            Choke(data) | Unchoke(data) | Interested(data) | NotInterested(data) | Have(data)
+            | Bitfield(data) | Request(data) | Piece(data) | Cancel(data) | Port(data) => {
+                data.1.to_owned()
+            }
+        }
+    }
+
+    /// Returns the amount of *bytes* in message.
+    pub fn get_length(&self) -> u32 {
+        if self.get_id().is_none() {
+            0
+        } else {
+            1 + self.get_payload().len() as u32
+        }
+    }
 }
 
 impl Message {
     /// Construct a "keep-alive" message.
     pub fn new_keep_alive() -> Message {
-        Message {
-            length: 0,
-            message_id: None,
-            payload: None,
-        }
+        Message::KeepAlive
     }
 
     /// Construct a "choke" message.
     pub fn new_choke() -> Message {
-        Message {
-            length: 1,
-            message_id: Some(0),
-            payload: None,
-        }
+        Message::Choke((0, vec![]))
     }
 
     /// Construct a "unchoke" message.
     pub fn new_unchoke() -> Message {
-        Message {
-            length: 1,
-            message_id: Some(1),
-            payload: None,
-        }
+        Message::Unchoke((1, vec![]))
     }
 
     /// Construct a "interested" message.
     pub fn new_interested() -> Message {
-        Message {
-            length: 1,
-            message_id: Some(2),
-            payload: None,
-        }
+        Message::Interested((2, vec![]))
     }
 
     /// Construct a "not_interested" message.
     pub fn new_not_interested() -> Message {
-        Message {
-            length: 1,
-            message_id: Some(3),
-            payload: None,
-        }
+        Message::NotInterested((3, vec![]))
     }
 
     /// Construct a "have" message.
@@ -61,11 +88,7 @@ impl Message {
     ///
     /// * `piece_index` - index of piece.
     pub fn new_have(piece_index: u32) -> Message {
-        Message {
-            length: 5,
-            message_id: Some(4),
-            payload: Some(piece_index.to_be_bytes().to_vec()),
-        }
+        Message::Have((4, piece_index.to_be_bytes().to_vec()))
     }
 
     /// Construct a "bitfield" message.
@@ -74,11 +97,7 @@ impl Message {
     ///
     /// * `bitfield` - bitfield representing the pieces that have been downloaded.
     pub fn new_bitfield(bitfield: Vec<u8>) -> Message {
-        Message {
-            length: 1 + bitfield.len() as u32,
-            message_id: Some(5),
-            payload: Some(bitfield),
-        }
+        Message::Bitfield((5, bitfield))
     }
 
     /// Construct a "request" message.
@@ -94,11 +113,7 @@ impl Message {
         buf.append(&mut begin.to_be_bytes().to_vec());
         buf.append(&mut length.to_be_bytes().to_vec());
 
-        Message {
-            length: 13,
-            message_id: Some(6),
-            payload: Some(buf),
-        }
+        Message::Bitfield((6, buf))
     }
 
     /// Construct a "piece" message.
@@ -114,11 +129,7 @@ impl Message {
         buf.append(&mut begin.to_be_bytes().to_vec());
         buf.append(&mut block);
 
-        Message {
-            length: 9 + block.len() as u32,
-            message_id: Some(7),
-            payload: Some(buf),
-        }
+        Message::Piece((7, buf))
     }
 
     /// Construct a "cancel" message.
@@ -134,11 +145,7 @@ impl Message {
         buf.append(&mut begin.to_be_bytes().to_vec());
         buf.append(&mut length.to_be_bytes().to_vec());
 
-        Message {
-            length: 13,
-            message_id: Some(8),
-            payload: Some(buf),
-        }
+        Message::Cancel((8, buf))
     }
 
     /// Construct a "port" message.
@@ -147,10 +154,6 @@ impl Message {
     ///
     /// * `port` - listen port.
     pub fn new_port(port: u16) -> Message {
-        Message {
-            length: 3,
-            message_id: Some(9),
-            payload: Some(port.to_be_bytes().to_vec()),
-        }
+        Message::Bitfield((9, port.to_be_bytes().to_vec()))
     }
 }

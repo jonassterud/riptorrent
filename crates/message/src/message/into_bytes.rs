@@ -5,15 +5,13 @@ impl Message {
     pub fn into_bytes(self) -> Vec<u8> {
         let mut out = vec![];
 
-        out.append(&mut self.length.to_be_bytes().to_vec());
+        out.append(&mut self.get_length().to_be_bytes().to_vec());
 
-        if self.message_id.is_some() {
-            out.push(self.message_id.unwrap());
+        if let Some(id) = self.get_id() {
+            out.push(id);
         }
 
-        if self.payload.is_some() {
-            out.append(&mut self.payload.unwrap());
-        }
+        out.append(&mut self.get_payload());
 
         out
     }
