@@ -69,16 +69,32 @@ async fn main() -> Result<()> {
                     Message::new_bitfield(vec![0; piece_amount / 8]),
                 )
                 .await?;
-                println!("Sent bitfield to peer.");
+                println!("Sent \"bitfield\" to peer.");
             
                 // Send "unchoke" to peer.
                 protocol::send_message(stream.clone(), Message::new_unchoke()).await?;
                 am_choking = false;
+                println!("Sent: \"unchoke\" to peer.");
+
+                // Send "interested" to peer.
+                protocol::send_message(stream.clone(), Message::new_interested()).await?;
+                am_interested = true;
+                println!("Sent: \"interested\" to peer.");
 
                 // Communication loop with peer.
                 loop {
+                    // TODO: Send "request" to peer.
+                    if am_interested && !peer_choking {
+                        protocol::send_message(stream.clone(), Message::new_request(0, 0, u32::pow(2, 14))).await?;
+                        println!("Sent: \"request\" to peer.");
+                        am_interested = false;
+                    }
+
+                    // Read message
                     let recieved_message = protocol::read_message(stream.clone()).await?;
-                    println!("{:?}", recieved_message);
+                    if recieved_message.get_id().is_some() {
+                        println!("Recieved: {:?}", recieved_message);
+                    }
 
                     match recieved_message {
                         Message::Choke(_) => peer_choking = true,
