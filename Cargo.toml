@@ -15,6 +15,7 @@ bcode = { version = "0.1", path = "crates/bcode" }
 torrent = { version = "0.1", path = "crates/torrent" }
 tracker = { version = "0.1", path = "crates/tracker" }
 message = { version = "0.1", path = "crates/message" }
+builder = { version = "0.1", path = "crates/builder" }
 protocol = { version = "0.1", path = "crates/protocol" }
 
 anyhow = { version = "1.0" }
