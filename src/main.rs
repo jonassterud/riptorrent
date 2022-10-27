@@ -3,6 +3,7 @@ mod cli;
 use anyhow::{anyhow, Result};
 use arrayref::array_ref;
 use async_std::sync::{Arc, Mutex};
+use builder::{Block, Builder};
 use cli::*;
 use message::Message;
 use torrent::Torrent;
@@ -12,6 +13,10 @@ use torrent::Torrent;
 // * IPv6 not working? - find workaround for networks that don't have 6rd or similar.
 // * Generate a peer id.
 // * Create piece download strategy.
+
+async fn sleep(secs: u64) {
+    async_std::task::sleep(std::time::Duration::from_secs(secs)).await;
+}
 
 #[async_std::main]
 async fn main() -> Result<()> {
@@ -26,31 +31,32 @@ async fn main() -> Result<()> {
             .send_request()
             .await?;
 
-        // Create pieces vector.
-        let pieces: Arc<Mutex<Vec<Vec<Option<u8>>>>> =
-            Arc::new(Mutex::new(vec![
-                vec![
-                    None;
-                    torrent.get_piece_length() as usize
-                ];
-                torrent.get_piece_amount()
-            ]));
+        // Create builder
+        let builder = Arc::new(Mutex::new(Builder::new(
+            torrent.get_piece_amount(),
+            torrent.get_piece_length() as usize,
+            u32::pow(2, 14) as usize,
+        )));
 
         // Print info.
-        /*println!(
+        println!(
             "Peer amount: {}\nPiece amount: {}\nPiece length: {}",
             tracker_resp.peers.len(),
             torrent.get_piece_amount(),
             torrent.get_piece_length()
-        );*/
+        );
 
         // Loop trough peers.
-        for peer in tracker_resp.peers {
+        for (i, peer) in tracker_resp.peers.into_iter().enumerate() {
+            if i > 4 {
+                break;
+            }
+
             // Clone values.
             let info_hash = torrent.info_hash.clone();
             let piece_amount = torrent.get_piece_amount();
             let peer_id = peer_id.clone();
-            let pieces = pieces.clone();
+            let builder = builder.clone();
 
             // Spawn an async task.
             async_std::task::spawn(async move {
@@ -68,15 +74,15 @@ async fn main() -> Result<()> {
                 )
                 .await?; // TODO: Gets stuck on ipv6 addresses.
 
-                /*println!(
+                println!(
                     "Opened stream to: {} -> {}",
                     peer.ip.unwrap(),
                     peer.port.unwrap()
-                );*/
+                );
 
                 // Handshake with peer.
                 protocol::handshake(stream.clone(), &info_hash, &peer_id).await?;
-                //println!("Handshaked with {}", peer.ip.unwrap());
+                println!("Handshaked with {}", peer.ip.unwrap());
 
                 // Send "bitfield" to peer.
                 protocol::send_message(
@@ -84,17 +90,17 @@ async fn main() -> Result<()> {
                     Message::new_bitfield(vec![0; piece_amount / 8]),
                 )
                 .await?;
-                //println!("Sent \"bitfield\" to peer.");
+                println!("Sent \"bitfield\" to peer.");
 
                 // Send "interested" to peer.
                 protocol::send_message(stream.clone(), Message::new_interested()).await?;
                 am_interested = true;
-                //println!("Sent: \"interested\" to peer.");
+                println!("Sent: \"interested\" to peer.");
 
                 // Send "unchoke" to peer.
                 //protocol::send_message(stream.clone(), Message::new_unchoke()).await?;
                 //am_choking = false;
-                //println!("Sent: \"unchoke\" to peer.");
+                println!("Sent: \"unchoke\" to peer.");
 
                 // Communication loop with peer.
                 loop {
@@ -105,14 +111,14 @@ async fn main() -> Result<()> {
                             Message::new_request(0, 0, u32::pow(2, 14)),
                         )
                         .await?;
-                        //println!("Sent: \"request\" to peer.");
+                        println!("Sent: \"request\" to peer.");
                         am_interested = false;
                     }
 
                     // Read message
                     let recieved_message = protocol::read_message(stream.clone()).await?;
                     if recieved_message.get_id().is_some() {
-                        //println!("Recieved: {}", recieved_message.get_name());
+                        println!("Recieved: {}", recieved_message.get_name());
                     }
 
                     match recieved_message {
@@ -141,27 +147,27 @@ async fn main() -> Result<()> {
                                 u32::from_be_bytes(*array_ref![payload, 4, 4]) as usize;
 
                             if peer_interested && !am_choking {
-                                if let Some(piece) = pieces.lock().await.get(piece_index as usize) {
-                                    if let Some(piece_block) =
-                                        piece.get(piece_begin..piece_begin + piece_length)
-                                    {
-                                        if let Some(piece_block) =
-                                            piece_block.iter().copied().collect::<Option<Vec<u8>>>()
-                                        {
-                                            // Send "piece" to peer.
-                                            protocol::send_message(
-                                                stream.clone(),
-                                                Message::new_piece(
-                                                    piece_index,
-                                                    piece_begin as u32,
-                                                    piece_block,
-                                                ),
-                                            )
-                                            .await?;
-                                            // println!("Sent: \"piece\" to peer.");
-                                        }
-                                    }
-                                }
+                                let piece_block = builder
+                                    .lock()
+                                    .await
+                                    .get_finished_block(
+                                        piece_index as usize,
+                                        piece_begin,
+                                        piece_length,
+                                    )?
+                                    .data;
+
+                                // Send "piece" to peer.
+                                protocol::send_message(
+                                    stream.clone(),
+                                    Message::new_piece(
+                                        piece_index,
+                                        piece_begin as u32,
+                                        piece_block,
+                                    ),
+                                )
+                                .await?;
+                                // println!("Sent: \"piece\" to peer.");
                             }
                         }
                         Message::Piece((_, payload)) => {
@@ -171,22 +177,14 @@ async fn main() -> Result<()> {
                             let piece_data = payload
                                 .get(8..)
                                 .ok_or_else(|| anyhow!("Missing piece data"))?;
-                            let piece_end = piece_begin + (piece_begin + piece_data.len());
 
-                            let piece_ref = &mut *pieces.lock().await;
-                            let row_ref = piece_ref
-                                .get_mut(piece_index as usize)
-                                .ok_or_else(|| anyhow!("Pieces structured incorrectly"))?;
+                            let block = Block {
+                                index: piece_index as usize,
+                                begin: piece_begin as usize,
+                                data: piece_data.to_vec(),
+                            };
 
-                            *row_ref = row_ref
-                                .splice(
-                                    piece_begin..piece_end,
-                                    piece_data
-                                        .iter()
-                                        .map(|x| Some(*x))
-                                        .collect::<Vec<Option<u8>>>(),
-                                )
-                                .collect();
+                            builder.lock().await.add_finished_block(block)?;
 
                             am_interested = true;
                         }
@@ -197,6 +195,8 @@ async fn main() -> Result<()> {
                             // ...
                         }
                     }
+
+                    sleep(3).await;
                 }
 
                 Ok::<(), anyhow::Error>(())
