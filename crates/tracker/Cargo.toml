@@ -10,6 +10,7 @@ license = "MIT"
 [dependencies]
 bcode = { version = "0.1", path = "../bcode" }
 torrent = { version = "0.1", path = "../torrent" }
+peer = { version = "0.1", path = "../peer" }
 
 anyhow = { version = "1.0" }
 arrayref = { version = "0.3" }

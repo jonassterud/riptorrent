@@ -16,7 +16,7 @@ torrent = { version = "0.1", path = "crates/torrent" }
 tracker = { version = "0.1", path = "crates/tracker" }
 message = { version = "0.1", path = "crates/message" }
 builder = { version = "0.1", path = "crates/builder" }
-protocol = { version = "0.1", path = "crates/protocol" }
+peer = { version = "0.1", path = "crates/peer" }
 
 anyhow = { version = "1.0" }
 arrayref = { version = "0.3" }

@@ -807,6 +807,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "427c3892f9e783d91cc128285287e70a59e206ca452770ece88a76f7a3eddd72"
 
 [[package]]
+name = "peer"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "arrayref",
+ "async-std",
+ "bcode",
+ "builder",
+ "futures",
+ "message",
+ "torrent",
+]
+
+[[package]]
 name = "percent-encoding"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -881,18 +895,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5ea3d908b0e36316caf9e9e2c4625cdde190a7e6f440d794667ed17a1855e725"
 dependencies = [
  "unicode-ident",
-]
-
-[[package]]
-name = "protocol"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-std",
- "bcode",
- "futures",
- "message",
- "torrent",
 ]
 
 [[package]]
@@ -1001,7 +1003,7 @@ dependencies = [
  "clap",
  "futures",
  "message",
- "protocol",
+ "peer",
  "torrent",
  "tracker",
 ]
@@ -1241,6 +1243,7 @@ dependencies = [
  "async-std",
  "bcode",
  "futures",
+ "peer",
  "reqwest",
  "torrent",
  "urlencoding",

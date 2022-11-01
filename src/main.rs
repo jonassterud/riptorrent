@@ -47,61 +47,24 @@ async fn main() -> Result<()> {
         );
 
         // Loop trough peers.
-        for (i, peer) in tracker_resp.peers.into_iter().enumerate() {
-            if i > 4 {
+        for (i, mut peer) in tracker_resp.peers.into_iter().enumerate() {
+            if i > 15 {
                 break;
             }
 
             // Clone values.
-            let info_hash = torrent.info_hash.clone();
+            let mut info_hash = torrent.info_hash.clone();
+            let mut id = peer_id.clone();
             let piece_amount = torrent.get_piece_amount();
-            let peer_id = peer_id.clone();
             let builder = builder.clone();
 
             // Spawn an async task.
             async_std::task::spawn(async move {
-                // Set peer state variables.
-                let mut am_choking = true;
-                let mut am_interested = false;
-                let mut peer_choking = true;
-                let mut peer_interested = false;
-                let mut peer_bitfield = vec![0_u8; piece_amount / 8];
+                peer.setup(&mut info_hash, &mut id, piece_amount).await?;
+                println!("Ready with {:?}", peer.ip);
+                peer.start(builder).await?;
 
-                // Open TcpStream to peer.
-                let stream = protocol::open_stream(
-                    peer.ip.ok_or_else(|| anyhow!("Missing ip"))?,
-                    peer.port.ok_or_else(|| anyhow!("Missing port"))?,
-                )
-                .await?; // TODO: Gets stuck on ipv6 addresses.
-
-                println!(
-                    "Opened stream to: {} -> {}",
-                    peer.ip.unwrap(),
-                    peer.port.unwrap()
-                );
-
-                // Handshake with peer.
-                protocol::handshake(stream.clone(), &info_hash, &peer_id).await?;
-                println!("Handshaked with {}", peer.ip.unwrap());
-
-                // Send "bitfield" to peer.
-                protocol::send_message(
-                    stream.clone(),
-                    Message::new_bitfield(vec![0; piece_amount / 8]),
-                )
-                .await?;
-                println!("Sent \"bitfield\" to peer.");
-
-                // Send "interested" to peer.
-                protocol::send_message(stream.clone(), Message::new_interested()).await?;
-                am_interested = true;
-                println!("Sent: \"interested\" to peer.");
-
-                // Send "unchoke" to peer.
-                //protocol::send_message(stream.clone(), Message::new_unchoke()).await?;
-                //am_choking = false;
-                println!("Sent: \"unchoke\" to peer.");
-
+                /*
                 // Communication loop with peer.
                 loop {
                     // TODO: Send "request" to peer.
@@ -199,6 +162,8 @@ async fn main() -> Result<()> {
                     sleep(3).await;
                 }
 
+                */
+
                 Ok::<(), anyhow::Error>(())
             });
         }
@@ -211,3 +176,8 @@ async fn main() -> Result<()> {
         Err(anyhow!("Failed reading torrent file"))
     }
 }
+
+// Send "interested" to peer.
+//protocol::send_message(stream.clone(), Message::new_interested()).await?;
+//am_interested = true;
+//println!("Sent: \"interested\" to peer.");
