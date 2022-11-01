@@ -72,9 +72,12 @@ impl Builder {
 
     pub fn assemble_piece(&self, index: usize) -> Vec<Option<u8>> {
         let mut out = vec![None; self.piece_length];
-  
-        for block in self.finished.iter().filter(|x| x.index == index)  {
-            out.splice(block.begin..block.begin+block.data.len(), block.data.iter().map(|x| Some(*x)));
+
+        for block in self.finished.iter().filter(|x| x.index == index) {
+            out.splice(
+                block.begin..block.begin + block.data.len(),
+                block.data.iter().map(|x| Some(*x)),
+            );
         }
 
         out
@@ -93,10 +96,14 @@ impl Builder {
 
     // TODO: Write tests
     pub fn get_finished_block(&self, index: usize, begin: usize, length: usize) -> Result<Block> {
-        if let Some(piece) = self.assemble_piece(index).get(begin..begin+length) {
-            let data = piece.iter().copied().collect::<Option<Vec<u8>>>().ok_or_else(|| anyhow!("Missing block"))?;
+        if let Some(piece) = self.assemble_piece(index).get(begin..begin + length) {
+            let data = piece
+                .iter()
+                .copied()
+                .collect::<Option<Vec<u8>>>()
+                .ok_or_else(|| anyhow!("Missing block"))?;
 
-            Ok(Block { index, begin, data})            
+            Ok(Block { index, begin, data })
         } else {
             Err(anyhow!("Missing block"))
         }
@@ -109,9 +116,13 @@ impl Builder {
             while row > 0 && block_index.is_none() {
                 let piece_index = row.leading_zeros() as usize + (row_index * 8);
 
-                if let Some((i, _)) = self.missing.iter().enumerate().find(|x| x.1.index == piece_index) {
+                if let Some((i, _)) = self
+                    .missing
+                    .iter()
+                    .enumerate()
+                    .find(|x| x.1.index == piece_index)
+                {
                     block_index = Some(i);
-                    println!("found block index");
                 } else {
                     row ^= 1 << (7 - row.leading_zeros());
                 }
@@ -121,7 +132,7 @@ impl Builder {
                 return Ok(self.missing.swap_remove(block_index));
             }
         }
-    
+
         Err(anyhow!("Didn't find any blocks"))
     }
 
