@@ -1,11 +1,9 @@
 mod cli;
 
 use anyhow::{anyhow, Result};
-use arrayref::array_ref;
 use async_std::sync::{Arc, Mutex};
-use builder::{Block, Builder};
+use builder::Builder;
 use cli::*;
-use message::Message;
 use torrent::Torrent;
 
 // TODO list:
@@ -34,7 +32,7 @@ async fn main() -> Result<()> {
 
         // Loop trough peers.
         for (i, mut peer) in tracker_resp.peers.into_iter().enumerate() {
-            if i > 50 {
+            if i > 25 {
                 break;
             }
 

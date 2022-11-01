@@ -15,6 +15,10 @@ impl Peer {
         loop {
             let recieved_message = self.read_message().await?;
 
+            if recieved_message.get_name() != "Keep alive" {
+                println!("Got: {}", recieved_message.get_name());
+            }
+
             match recieved_message {
                 Message::KeepAlive => {}
                 Message::Choke(_) => self.peer_choking = true,
@@ -37,7 +41,7 @@ impl Peer {
                 Message::Bitfield((_, payload)) => self.bitfield = Some(payload),
                 Message::Request((_, payload)) => {
                     if !self.peer_interested || self.am_choking {
-                   //     break;
+                        //     break;
                     }
 
                     let piece_index = u32::from_be_bytes(*array_ref![payload, 0, 4]);
@@ -70,34 +74,34 @@ impl Peer {
                         data: piece_data.to_vec(),
                     };
 
-                    if let Some((index, _)) = wanted_blocks.iter().enumerate().find(|x| x.1.eq(&block)) {
+                    if let Some((index, _)) =
+                        wanted_blocks.iter().enumerate().find(|x| x.1.eq(&block))
+                    {
                         wanted_blocks.swap_remove(index);
                     }
 
-                    builder.lock().await.add_finished_block(block)?;                
-                    
+                    builder.lock().await.add_finished_block(block)?;
+
                     //let finished = builder.lock().await.finished.len();
                     //let total = finished + builder.lock().await.missing.len();
+
                     println!("got piece");
                 }
                 Message::Cancel(_) => {
                     todo!()
                 }
                 Message::Port(_) => {
-                   // todo!()
+                    // todo!()
                 }
             };
 
             if let Some(bitfield) = &self.bitfield {
                 if wanted_blocks.len() < request_limit {
-                    if let Ok(t) = builder
-                        .lock()
-                        .await
-                        .take_missing_relevant_block(bitfield) {
-                            wanted_blocks.push(t);
-                        }
+                    if let Ok(t) = builder.lock().await.take_missing_relevant_block(bitfield) {
+                        wanted_blocks.push(t);
+                    }
 
-                    if !self.am_interested  {
+                    if !self.am_interested {
                         self.send_message(Message::new_interested()).await?;
                         self.send_message(Message::new_unchoke()).await?;
                         self.am_interested = true;
@@ -120,7 +124,5 @@ impl Peer {
                 }
             }
         }
-
-        Ok(())
     }
 }

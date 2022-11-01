@@ -28,6 +28,7 @@ impl Peer {
     ///
     /// * `message` - message to send.
     pub async fn send_message(&self, message: Message) -> Result<()> {
+        println!("Sent: {}", message.get_name());
         let bytes = message.into_bytes();
         self.send_data(bytes).await?;
 
