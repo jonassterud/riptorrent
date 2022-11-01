@@ -14,10 +14,6 @@ use torrent::Torrent;
 // * Generate a peer id.
 // * Create piece download strategy.
 
-async fn sleep(secs: u64) {
-    async_std::task::sleep(std::time::Duration::from_secs(secs)).await;
-}
-
 #[async_std::main]
 async fn main() -> Result<()> {
     let args = cli::Args::parse();
@@ -66,8 +62,3 @@ async fn main() -> Result<()> {
         Err(anyhow!("Failed reading torrent file"))
     }
 }
-
-// Send "interested" to peer.
-//protocol::send_message(stream.clone(), Message::new_interested()).await?;
-//am_interested = true;
-//println!("Sent: \"interested\" to peer.");
