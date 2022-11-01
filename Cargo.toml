@@ -14,9 +14,12 @@ license = "MIT"
 bcode = { version = "0.1", path = "crates/bcode" }
 torrent = { version = "0.1", path = "crates/torrent" }
 tracker = { version = "0.1", path = "crates/tracker" }
-protocol = { version = "0.1", path = "crates/protocol" }
+message = { version = "0.1", path = "crates/message" }
+builder = { version = "0.1", path = "crates/builder" }
+peer = { version = "0.1", path = "crates/peer" }
 
 anyhow = { version = "1.0" }
+arrayref = { version = "0.3" }
 clap = { version = "4.0", features = ["derive"] }
 async-std = { version = "1.12", features = ["attributes", "tokio1"] }
 futures = { version = "0.3" }

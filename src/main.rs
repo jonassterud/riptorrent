@@ -1,45 +1,52 @@
 mod cli;
 
 use anyhow::{anyhow, Result};
+use async_std::sync::{Arc, Mutex};
+use builder::Builder;
 use cli::*;
 use torrent::Torrent;
+
+// TODO list:
+//
+// * IPv6 not working? - find workaround for networks that don't have 6rd or similar.
+// * Generate a peer id.
+// * Create piece download strategy.
 
 #[async_std::main]
 async fn main() -> Result<()> {
     let args = cli::Args::parse();
 
     if let Ok(bytes) = std::fs::read(args.path) {
+        // Open torrent and get information from tracker.
+        let peer_id = b"-qBhj010488887635243".to_vec();
         let torrent = Torrent::from_bytes(bytes).await?;
+        let tracker = tracker::Request::from_torrent(&torrent, &peer_id).await;
+        let tracker_resp = tracker.send_request().await?;
 
-        let peer_id = b"j9jkjkj9jshdhghfj398".to_vec();
+        // Create builder
+        let builder = Arc::new(Mutex::new(Builder::new(
+            torrent.get_piece_amount(),
+            torrent.get_piece_length() as usize,
+            u32::pow(2, 14) as usize,
+        )));
 
-        let tracker_request = tracker::Request::from_torrent(&torrent, &peer_id).await;
-        let tracker_resp = tracker_request.send_request().await?;
+        // Loop trough peers.
+        for (i, mut peer) in tracker_resp.peers.into_iter().enumerate() {
+            if i > 25 {
+                break;
+            }
 
-        println!("Peer amount: {}", tracker_resp.peers.len());
+            // Clone values.
+            let mut info_hash = torrent.info_hash.clone();
+            let mut id = peer_id.clone();
+            let piece_amount = torrent.get_piece_amount();
+            let builder = builder.clone();
 
-        for peer in tracker_resp.peers {
-            let info_hash = torrent.info_hash.clone();
-            let peer_id = peer_id.clone();
-
+            // Spawn an async task.
             async_std::task::spawn(async move {
-                // Open stream
-                let mut stream = protocol::open_stream(
-                    peer.ip.ok_or_else(|| anyhow!("Missing ip"))?,
-                    peer.port.ok_or_else(|| anyhow!("Missing port"))?,
-                )
-                .await?;
-
-                println!("Opened stream");
-
-                // Handshake
-                protocol::send_handshake(&mut stream, &info_hash, &peer_id).await?;
-                let peer_handshake = protocol::read_handshake(&mut stream).await?;
-                println!("Received handshake!");
-                println!("Handshake: {:?}", peer_handshake);
-
-                // ...
-                // ...
+                peer.setup(&mut info_hash, &mut id, piece_amount).await?;
+                println!("Ready with {:?}", peer.ip);
+                peer.start(builder).await?;
 
                 Ok::<(), anyhow::Error>(())
             });

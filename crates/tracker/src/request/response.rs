@@ -1,11 +1,12 @@
 use anyhow::{anyhow, Result};
 use arrayref::array_ref;
 use bcode::map_get;
+use peer::Peer;
 use std::collections::BTreeMap;
 use std::net::IpAddr;
 
 /// Struct representing a response from a tracker request.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Response {
     pub failure_reason: Option<String>,
     pub warning_message: Option<String>,
@@ -15,14 +16,6 @@ pub struct Response {
     pub complete: Option<i64>,
     pub incomplete: Option<i64>,
     pub peers: Vec<Peer>,
-}
-
-/// Struct representing a peer from a tracker response.
-#[derive(Debug)]
-pub struct Peer {
-    pub peer_id: Option<Vec<u8>>,
-    pub ip: Option<IpAddr>,
-    pub port: Option<u16>,
 }
 
 impl Response {
@@ -60,15 +53,11 @@ impl Response {
                 for peer_map in peers_list {
                     let peer_map: BTreeMap<Vec<u8>, bcode::Value> = peer_map.try_into()?;
 
-                    let peer_id: Vec<u8> = map_get(&peer_map, "peer id")?.try_into()?;
+                    let id: Vec<u8> = map_get(&peer_map, "peer id")?.try_into()?;
                     let ip: String = map_get(&peer_map, "ip")?.try_into()?;
                     let port: i64 = map_get(&peer_map, "port")?.try_into()?;
 
-                    out.push(Peer {
-                        peer_id: Some(peer_id),
-                        ip: Some(ip.parse()?),
-                        port: Some(port as u16),
-                    });
+                    out.push(Peer::new(Some(id), ip.parse()?, port as u16));
                 }
 
                 Ok(out)
@@ -80,11 +69,7 @@ impl Response {
                     let ip = *array_ref![peer_chunk, 0, 4];
                     let port = u16::from_be_bytes(*array_ref![peer_chunk, 4, 2]);
 
-                    out.push(Peer {
-                        peer_id: None,
-                        ip: Some(IpAddr::from(ip)),
-                        port: Some(port),
-                    })
+                    out.push(Peer::new(None, IpAddr::from(ip), port))
                 }
 
                 Ok(out)

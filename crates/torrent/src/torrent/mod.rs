@@ -1,4 +1,6 @@
 mod from_bytes;
+mod get_piece_amount;
+mod get_piece_length;
 mod get_size;
 
 /// Struct representing a torrent file.

@@ -1,17 +1,14 @@
 [package]
-name = "protocol"
+name = "builder"
 version = "0.1.0"
 authors = ["Jonas Mathisrud Sterud <jonas.sterud@gmail.com>"]
 edition = "2021"
-description = "BitTorrent protocol functions"
+description = "Downloads and assembles BitTorrent pieces"
 repository = "https://github.com/jonassterud/riptorrent"
 license = "MIT"
 
 [dependencies]
-bcode = { version = "0.1", path = "../bcode" }
-message = { version = "0.1", path = "../message" }
 torrent = { version = "0.1", path = "../torrent" }
 
 anyhow = { version = "1.0" }
-async-std = { version = "1.12", features = ["attributes", "tokio1"] }
-futures = { version = "0.3" }
+rand = { version = "0.8.5" }
