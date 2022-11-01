@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use rand::prelude::IteratorRandom;
 
 /// Block of a piece.
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Block {
     /// Index of the piece.
     pub index: usize,
@@ -13,10 +13,13 @@ pub struct Block {
 }
 
 /// Struct to keep track of finished/missing blocks, and assemble them once finished.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Builder {
     pub finished: Vec<Block>,
     pub missing: Vec<Block>,
+
+    pub piece_amount: usize,
+    pub piece_length: usize,
 }
 
 impl Builder {
@@ -62,25 +65,64 @@ impl Builder {
         Builder {
             finished: vec![],
             missing,
+            piece_amount,
+            piece_length,
         }
+    }
+
+    pub fn assemble_piece(&self, index: usize) -> Vec<Option<u8>> {
+        let mut out = vec![None; self.piece_length];
+  
+        for block in self.finished.iter().filter(|x| x.index == index)  {
+            out.splice(block.begin..block.begin+block.data.len(), block.data.iter().map(|x| Some(*x)));
+        }
+
+        out
+    }
+
+    pub fn assemble(&self) -> Vec<Option<u8>> {
+        let mut out = vec![];
+
+        for index in 0..self.piece_amount {
+            let mut piece = self.assemble_piece(index);
+            out.append(&mut piece);
+        }
+
+        out
     }
 
     // TODO: Write tests
     pub fn get_finished_block(&self, index: usize, begin: usize, length: usize) -> Result<Block> {
-        let mut buf = vec![None; length];
+        if let Some(piece) = self.assemble_piece(index).get(begin..begin+length) {
+            let data = piece.iter().copied().collect::<Option<Vec<u8>>>().ok_or_else(|| anyhow!("Missing block"))?;
 
-        for block in self.finished.iter() {
-            if block.index == index as usize {
-                buf.splice(begin..(begin + length), block.data.iter().map(|x| Some(*x)));
+            Ok(Block { index, begin, data})            
+        } else {
+            Err(anyhow!("Missing block"))
+        }
+    }
+
+    pub fn take_missing_relevant_block(&mut self, bitfield: &[u8]) -> Result<Block> {
+        let mut block_index = None;
+
+        for (row_index, mut row) in bitfield.iter().copied().enumerate() {
+            while row > 0 && block_index.is_none() {
+                let piece_index = row.leading_zeros() as usize + (row_index * 8);
+
+                if let Some((i, _)) = self.missing.iter().enumerate().find(|x| x.1.index == piece_index) {
+                    block_index = Some(i);
+                    println!("found block index");
+                } else {
+                    row ^= 1 << (7 - row.leading_zeros());
+                }
+            }
+
+            if let Some(block_index) = block_index {
+                return Ok(self.missing.swap_remove(block_index));
             }
         }
-
-        let data = buf
-            .into_iter()
-            .collect::<Option<Vec<u8>>>()
-            .ok_or_else(|| anyhow!("Missing block"))?;
-
-        Ok(Block { index, begin, data })
+    
+        Err(anyhow!("Didn't find any blocks"))
     }
 
     pub fn take_random_missing_block(&mut self) -> Result<Block> {
